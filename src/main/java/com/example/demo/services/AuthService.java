@@ -67,19 +67,19 @@ public class AuthService {
     PasswordEncoder passwordEncoder;
 
     public RegisterResponse register(RegisterRequest body) {
-        AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
-        if (findEmailExsist != null) {
-            throw new RuntimeException("Tài khoản user đã tồn tại.");
-        }
         String subject = "Test email from Spring";
-        String html = "<h1>This is a test Spring Boot email</h1>" +
-                "<p>It can contain <strong>HTML</strong> content.</p>";
         try {
-            emailService.sendEmail(body.getEmail(), subject, html);
+            emailService.sendEmail(body.getEmail(), subject);
+            System.out.println("vào đây:");
         } catch (MessagingException e) {
             System.out.println("error send mail");
             e.printStackTrace();
         }
+        AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
+        if (findEmailExsist != null) {
+            throw new RuntimeException("Tài khoản user đã tồn tại.");
+        }
+       
         String id = UUID.randomUUID().toString();
 
         String hashedPassword = passwordEncoder.encode(body.getPassword());
@@ -218,10 +218,8 @@ public class AuthService {
 
     public ForgotPasswordRequest forgotPassword(ForgotPasswordRequest payload) {
         String subject = Utils.randomToken();
-        String html = "<h1>forgot password</h1>" +
-                "<p>It can contain <strong>HTML</strong> content.</p>";
         try {
-            emailService.sendEmail(payload.getEmail(), subject, html);
+            emailService.sendEmail(payload.getEmail(), subject);
         } catch (MessagingException e) {
             System.out.println("error send mail");
             e.printStackTrace();
