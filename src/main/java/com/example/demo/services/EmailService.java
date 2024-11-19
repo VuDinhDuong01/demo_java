@@ -1,16 +1,11 @@
 package com.example.demo.services;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
-
-import com.example.demo.configs.ThymeleafConfig;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -38,14 +33,10 @@ public class EmailService {
     @Autowired
     SpringTemplateEngine springTemplateEngine;
 
-    public void sendEmail(String to, String subject) throws MessagingException {
+    public void sendEmail(String to, String subject , String html , Context context) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         
-        Context context = new Context();
-        Map<String , Object> p = new HashMap();
-        p.put("per", "abc");
-        context.setVariables(p);
-        String body = springTemplateEngine.process("confirm-email.html", context);
+        String body = springTemplateEngine.process(html, context);
         message.setFrom(new InternetAddress(sender));
         message.setRecipients(MimeMessage.RecipientType.TO,"duong2lophot@gmail.com");
         message.setSubject(subject);

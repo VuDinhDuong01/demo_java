@@ -23,53 +23,56 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${spring.jwt.secretKey_access_token}")
-    private String secretKey_access_token;
-    private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login", "/api/v1/user-filter",
-            "/api/v1//update-user" };
+        @Value("${spring.jwt.secretKey_access_token}")
+        private String secretKey_access_token;
+        private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login", "/api/v1/user-filter",
+                        "/api/v1//update-user", "/api/v1/permission" };
 
-    @Bean
-    SecurityFilterChain appEndpoints(HttpSecurity http) throws Exception {
-        // java default chặn mở chặn csrf;
-        http.csrf().disable()
-                .cors().disable()
-                .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(HttpMethod.POST,
-                                PUBLIC_ROUTE)
-                        .permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/update-user").permitAll()
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                // // verify token, xác thực user. mỗi khi token truyền lên từ header.
-                                .decoder(jwtDecoder())
-                                // // chuyển đổi thành đối tượng phục vụ cho quyền hạn user.
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
-        return http.build();
-    }
+        @Bean
+        SecurityFilterChain appEndpoints(HttpSecurity http) throws Exception {
+                // java default chặn mở chặn csrf;
+                http.csrf().disable()
+                                .cors().disable()
+                                .authorizeHttpRequests((authorize) -> authorize
+                                                .requestMatchers(HttpMethod.POST,
+                                                                PUBLIC_ROUTE)
+                                                .permitAll()
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/update-user").permitAll()
+                                                .anyRequest().authenticated())
+                                .oauth2ResourceServer(oauth2 -> oauth2
+                                                .jwt(jwt -> jwt
+                                                                // verify token, xác thực user. mỗi khi token truyền lên
+                                                                // từ header.
+                                                                .decoder(jwtDecoder())
+                                                                // chuyển đổi thành đối tượng phục vụ cho quyền hạn
+                                                                // user.
+                                                                .jwtAuthenticationConverter(
+                                                                                jwtAuthenticationConverter())));
+                return http.build();
+        }
 
-    @Bean
-    JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(
-                secretKey_access_token.getBytes(), "HS512");
-        return NimbusJwtDecoder
-                .withSecretKey(secretKeySpec)
-                .macAlgorithm(MacAlgorithm.HS512)
-                .build();
-    };
+        @Bean
+        JwtDecoder jwtDecoder() {
+                SecretKeySpec secretKeySpec = new SecretKeySpec(
+                                secretKey_access_token.getBytes(), "HS512");
+                return NimbusJwtDecoder
+                                .withSecretKey(secretKeySpec)
+                                .macAlgorithm(MacAlgorithm.HS512)
+                                .build();
+        };
 
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+        @Bean
+        public JwtAuthenticationConverter jwtAuthenticationConverter() {
+                JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+                grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
 
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        return jwtAuthenticationConverter;
-    }
+                JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+                jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+                return jwtAuthenticationConverter;
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder(10);
+        }
 }

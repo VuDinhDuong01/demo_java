@@ -1,11 +1,7 @@
 package com.example.demo.entity;
 
-import java.util.Date;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -15,29 +11,19 @@ import lombok.experimental.FieldDefaults;
 @Data
 @Table(name = "auth")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthEntity {
+public class AuthEntity extends BaseEntity {
+
     @Id
     String id;
 
     String username;
     String password;
     String email;
+    String avatar;
 
-    String forgotPassword;
+    Integer verify =0;
 
-    String createdBy;
-    String updatedBy;
+    String verify_email;
 
-    Date createdAt;
-    Date updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt= new Date();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = new Date();
-    }
+    String forgotPassword; 
 }

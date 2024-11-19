@@ -17,9 +17,8 @@ import com.example.demo.dtos.requests.RegisterRequest;
 import com.example.demo.dtos.requests.ResetPasswordRequest;
 import com.example.demo.dtos.requests.UpdateUserRequest;
 import com.example.demo.dtos.requests.VerifyTokenForgotPasswordRequest;
+import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.BaseResponse;
-import com.example.demo.dtos.responses.LoginResponse;
-import com.example.demo.dtos.responses.RegisterResponse;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.services.AuthService;
 
@@ -39,19 +38,23 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/register")
-    public BaseResponse<RegisterResponse> register(@RequestBody() @Valid RegisterRequest body) {
-        RegisterResponse response = authService.register(body);
-        BaseResponse<RegisterResponse> baseResponse = BaseResponse.<RegisterResponse>builder().result(response)
-                .error(null)
-                .status(200)
-                .build();
+    public BaseResponse<AuthResponse.RegisterResponse> register(@RequestBody() @Valid RegisterRequest body) {
+        AuthResponse.RegisterResponse response = authService.register(body);
+        BaseResponse<AuthResponse.RegisterResponse> baseResponse = BaseResponse.<AuthResponse.RegisterResponse>builder().result(response).build();
+        return baseResponse;
+    }
+
+    @PostMapping("/verify-email")
+    public BaseResponse<String> verifyEmail(@RequestBody @Valid VerifyTokenForgotPasswordRequest body) {
+        String response = authService.verifyEmail(body);
+        BaseResponse<String> baseResponse = BaseResponse.<String>builder().result(response).build();
         return baseResponse;
     }
 
     @PostMapping("/login")
-    public BaseResponse<LoginResponse> login(@RequestBody @Valid LoginRequest body) {
-        LoginResponse response = authService.login(body);
-        BaseResponse<LoginResponse> baseResponse = BaseResponse.<LoginResponse>builder().result(response).status(200)
+    public BaseResponse<AuthResponse.LoginResponse> login(@RequestBody @Valid LoginRequest body) {
+        AuthResponse.LoginResponse response = authService.login(body);
+        BaseResponse<AuthResponse.LoginResponse> baseResponse = BaseResponse.<AuthResponse.LoginResponse>builder().result(response)
                 .build();
         return baseResponse;
 
@@ -60,8 +63,8 @@ public class AuthController {
     @PostMapping("/user-filter")
     public BaseResponse<Map<String, Object>> userFilter(@RequestBody @Valid GetAllRequest body) {
         Map<String, Object> users = authService.userFilter(body);
-        BaseResponse<Map<String, Object>> baseResponse = BaseResponse.<Map<String, Object>>builder().status(200)
-                .result(users).error(null)
+        BaseResponse<Map<String, Object>> baseResponse = BaseResponse.<Map<String, Object>>builder()
+                .result(users)
                 .build();
         return baseResponse;
     }
@@ -69,8 +72,8 @@ public class AuthController {
     @PutMapping("/update-user")
     public BaseResponse<AuthEntity> updateUser(@RequestBody UpdateUserRequest body) {
         AuthEntity user = authService.updateUser(body);
-        BaseResponse<AuthEntity> baseResponse = BaseResponse.<AuthEntity>builder().status(200)
-                .result(user).error(null)
+        BaseResponse<AuthEntity> baseResponse = BaseResponse.<AuthEntity>builder()
+                .result(user)
                 .build();
         return baseResponse;
     }
@@ -79,8 +82,8 @@ public class AuthController {
     public BaseResponse<ForgotPasswordRequest> forgotPassword(@RequestBody ForgotPasswordRequest body) {
 
         ForgotPasswordRequest forgotPassword = authService.forgotPassword(body);
-        BaseResponse<ForgotPasswordRequest> baseResponse = BaseResponse.<ForgotPasswordRequest>builder().status(200)
-                .result(forgotPassword).error(null)
+        BaseResponse<ForgotPasswordRequest> baseResponse = BaseResponse.<ForgotPasswordRequest>builder()
+                .result(forgotPassword)
                 .build();
         return baseResponse;
     }
@@ -89,8 +92,8 @@ public class AuthController {
     public BaseResponse<ForgotPasswordRequest> verifyTokenForgotPassword(
             @RequestBody VerifyTokenForgotPasswordRequest body) {
         ForgotPasswordRequest verifyForgotPasswordRequest = authService.verifyForgotPassword(body);
-        BaseResponse<ForgotPasswordRequest> baseResponse = BaseResponse.<ForgotPasswordRequest>builder().status(200)
-                .result(verifyForgotPasswordRequest).error(null)
+        BaseResponse<ForgotPasswordRequest> baseResponse = BaseResponse.<ForgotPasswordRequest>builder()
+                .result(verifyForgotPasswordRequest)
                 .build();
         return baseResponse;
     }
@@ -99,8 +102,8 @@ public class AuthController {
     public BaseResponse<String> resetPassword(
             @RequestBody ResetPasswordRequest body) {
         String resetPasswordResponse = authService.resetPassword(body);
-        BaseResponse<String> baseResponse = BaseResponse.<String>builder().status(200)
-                .result(resetPasswordResponse).error(null)
+        BaseResponse<String> baseResponse = BaseResponse.<String>builder()
+                .result(resetPasswordResponse)
                 .build();
         return baseResponse;
     }

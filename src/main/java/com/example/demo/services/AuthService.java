@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 
 import com.example.demo.dtos.requests.ConditionRequest;
 import com.example.demo.dtos.requests.ForgotPasswordRequest;
@@ -28,8 +29,7 @@ import com.example.demo.dtos.requests.RegisterRequest;
 import com.example.demo.dtos.requests.ResetPasswordRequest;
 import com.example.demo.dtos.requests.UpdateUserRequest;
 import com.example.demo.dtos.requests.VerifyTokenForgotPasswordRequest;
-import com.example.demo.dtos.responses.LoginResponse;
-import com.example.demo.dtos.responses.RegisterResponse;
+import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.Token;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.repositorys.AuthRepository;
@@ -66,41 +66,73 @@ public class AuthService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public RegisterResponse register(RegisterRequest body) {
-        String subject = "Test email from Spring";
-        try {
-            emailService.sendEmail(body.getEmail(), subject);
-            System.out.println("vào đây:");
-        } catch (MessagingException e) {
-            System.out.println("error send mail");
-            e.printStackTrace();
-        }
+    public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
         if (findEmailExsist != null) {
             throw new RuntimeException("Tài khoản user đã tồn tại.");
         }
-       
+        String subject = "Token của bạn.";
+        Context context = new Context();
+        String html = "confirm-email.html";
+        String token = Utils.randomToken();
+        System.out.println("token:" + token);
+        Map<String, Object> p = new HashMap<>();
+        p.put("send-token", token);
+        context.setVariables(p);
+
+        // try {
+        // emailService.sendEmail(body.getEmail(), subject, html, context);
+        // } catch (MessagingException e) {
+        // System.out.println("error send mail");
+        // e.printStackTrace();
+        // }
+
         String id = UUID.randomUUID().toString();
 
         String hashedPassword = passwordEncoder.encode(body.getPassword());
+
         AuthEntity authEntity = new AuthEntity();
         authEntity.setEmail(body.getEmail());
+        authEntity.setVerify_email(token);
         authEntity.setPassword(hashedPassword);
         authEntity.setUsername(body.getUsername());
         authEntity.setId(id);
         authEntity.setCreatedBy(id);
         authRepository.save(authEntity);
-        RegisterResponse registerResponse = RegisterResponse.builder().id(id).build();
+        AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().id(id).build();
         return registerResponse;
 
     }
 
-    public LoginResponse login(LoginRequest payload) {
+    public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
+        AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
+        boolean checkVerify = Utils.checkVerifyTimer((java.sql.Date) findEmailUser.getCreatedAt());
+        if (findEmailUser.getVerify_email() != payload.getToken()) {
+            throw new RuntimeException("Token của bạn không đúng");
+        }
+        if (!checkVerify) {
+            throw new RuntimeException("Token của bạn đã hết hạn");
+        }
+        AuthEntity authEntity = new AuthEntity();
+        authEntity.setVerify_email("");
+        authEntity.setVerify(1);
+
+        authRepository.save(authEntity);
+        return "verify email success";
+    }
+
+    public AuthResponse.LoginResponse login(LoginRequest payload) {
 
         AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
 
         if (findEmailUser == null) {
             throw new RuntimeException("user not exsist");
+        }
+
+        String checkVerify = findEmailUser.getVerify_email();
+
+        if (!checkVerify.equals("")) {
+            throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
         }
 
         Boolean hashedPassword = passwordEncoder.matches(payload.getPassword(), findEmailUser.getPassword());
@@ -115,9 +147,7 @@ public class AuthService {
         token.setAccess_token(access_token);
         token.setRefresh_token(refresh_token);
 
-        System.out.println("response" + findEmailUser);
-
-        LoginResponse loginResponse = LoginResponse.builder().data(findEmailUser).token(token)
+        AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
                 .build();
 
         return loginResponse;
@@ -217,9 +247,15 @@ public class AuthService {
     }
 
     public ForgotPasswordRequest forgotPassword(ForgotPasswordRequest payload) {
-        String subject = Utils.randomToken();
+        String subject = "Testing send mail reset password";
+        String token = Utils.randomToken();
+        String html = "send-mail-reset-password.html";
+        Context context = new Context();
+        Map<String, Object> field = new HashMap<>();
+        field.put("field", token);
+        context.setVariables(field);
         try {
-            emailService.sendEmail(payload.getEmail(), subject);
+            emailService.sendEmail(payload.getEmail(), subject, html, context);
         } catch (MessagingException e) {
             System.out.println("error send mail");
             e.printStackTrace();

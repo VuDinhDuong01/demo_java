@@ -32,7 +32,7 @@ public class SendmailConfig {
         mailSender.setPort(Integer.parseInt(port));
 
         mailSender.setUsername("duong2lophot@gmail.com");
-        mailSender.setPassword("asqyfvydtybtrsmw");
+        mailSender.setPassword("dzabpdogggwiveln");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
