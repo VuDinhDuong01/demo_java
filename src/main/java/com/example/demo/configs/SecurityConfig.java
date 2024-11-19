@@ -31,15 +31,16 @@ public class SecurityConfig {
         @Bean
         SecurityFilterChain appEndpoints(HttpSecurity http) throws Exception {
                 // java default chặn mở chặn csrf;
-                http.csrf().disable()
-                                .cors().disable()
-                                .authorizeHttpRequests((authorize) -> authorize
+                http
+                .csrf().disable()
+                .cors().disable()
+                .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(HttpMethod.POST,
                                                                 PUBLIC_ROUTE)
                                                 .permitAll()
-                                                .requestMatchers(HttpMethod.PUT, "/api/v1/update-user").permitAll()
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
                                                 .anyRequest().authenticated())
-                                .oauth2ResourceServer(oauth2 -> oauth2
+                .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
                                                                 // verify token, xác thực user. mỗi khi token truyền lên
                                                                 // từ header.
