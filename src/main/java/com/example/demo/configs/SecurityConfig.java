@@ -26,7 +26,7 @@ public class SecurityConfig {
         @Value("${spring.jwt.secretKey_access_token}")
         private String secretKey_access_token;
         private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login", "/api/v1/user-filter",
-                        "/api/v1//update-user", "/api/v1/permission" };
+                        "/api/v1//update-user", "/api/v1/*" };
 
         @Bean
         SecurityFilterChain appEndpoints(HttpSecurity http) throws Exception {
