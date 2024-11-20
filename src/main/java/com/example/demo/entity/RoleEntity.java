@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -15,7 +16,8 @@ import lombok.experimental.FieldDefaults;
 @Entity
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
-public class RoleEntity {
+@Table(name  = "role")
+public class RoleEntity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,5 +27,5 @@ public class RoleEntity {
     String description;
 
     @ManyToMany
-    Set<PermissionEntity> permission;
+    Set<PermissionEntity> permissions;
 }

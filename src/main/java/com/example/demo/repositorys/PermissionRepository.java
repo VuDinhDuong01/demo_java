@@ -13,5 +13,6 @@ import com.example.demo.entity.PermissionEntity;
 @Repository
 public interface PermissionRepository extends JpaRepository<PermissionEntity, UUID>{
     PermissionEntity findByName(String name);
-    Set<PermissionEntity> findAll(Set<String> name);
+    
+    Set<PermissionEntity> findByNameIn(Set<String> actions);
 } 

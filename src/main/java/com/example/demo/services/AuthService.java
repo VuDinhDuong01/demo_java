@@ -6,8 +6,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,9 @@ import com.example.demo.dtos.requests.VerifyTokenForgotPasswordRequest;
 import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.Token;
 import com.example.demo.entity.AuthEntity;
+import com.example.demo.entity.RoleEntity;
 import com.example.demo.repositorys.AuthRepository;
+import com.example.demo.repositorys.RoleRepository;
 import com.example.demo.utils.Utils;
 
 import io.jsonwebtoken.Jwts;
@@ -49,20 +53,21 @@ import lombok.experimental.FieldDefaults;
 
 @Service
 @Data
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
+
 public class AuthService {
     @Value("${spring.jwt.secretKey_access_token}")
     private String secretKey_access_token;
 
     @Value("${spring.jwt.secretKey_refresh_token}")
-    private String secretKey_refresh_token;
-
+    String secretKey_refresh_token;
     @Autowired
-    private EmailService emailService;
+    EmailService emailService;
     @Autowired
-    private AuthRepository authRepository;
-
+    AuthRepository authRepository;
+    @Autowired
+    RoleRepository roleRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
 
@@ -131,9 +136,9 @@ public class AuthService {
 
         String checkVerify = findEmailUser.getVerify_email();
 
-        if (!checkVerify.equals("")) {
-            throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
-        }
+        // if (!checkVerify.equals("")) {
+        // throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
+        // }
 
         Boolean hashedPassword = passwordEncoder.matches(payload.getPassword(), findEmailUser.getPassword());
         if (!hashedPassword) {
@@ -147,6 +152,10 @@ public class AuthService {
         token.setAccess_token(access_token);
         token.setRefresh_token(refresh_token);
 
+        RoleEntity getRoleDefault = roleRepository.findByName("USER");
+
+        findEmailUser.setPermissions(getRoleDefault);
+        findEmailUser.setRole(findEmailUser.getRole().equals("SUPER_ADMIN") ? findEmailUser.getRole() : "USER");
         AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
                 .build();
 

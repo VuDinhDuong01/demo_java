@@ -12,7 +12,7 @@ import com.example.demo.dtos.requests.PermissionRequest;
 import com.example.demo.dtos.responses.BaseResponse;
 
 import com.example.demo.services.PermissionService;
-import com.fasterxml.jackson.databind.JsonSerializable.Base;
+
 
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
