@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -62,6 +64,7 @@ public class AuthService {
 
     @Value("${spring.jwt.secretKey_refresh_token}")
     String secretKey_refresh_token;
+
     @Autowired
     EmailService emailService;
     @Autowired
@@ -144,7 +147,8 @@ public class AuthService {
         if (!hashedPassword) {
             throw new RuntimeException("password not match.");
         }
-
+        System.out.println("secretKey_access_token:" + secretKey_access_token);
+        System.out.println("secretKey_refresh_token:" + secretKey_refresh_token);
         String access_token = this.generateToken(secretKey_access_token, findEmailUser);
         String refresh_token = this.generateToken(secretKey_refresh_token, findEmailUser);
 
@@ -155,7 +159,7 @@ public class AuthService {
         RoleEntity getRoleDefault = roleRepository.findByName("USER");
 
         findEmailUser.setPermissions(getRoleDefault);
-        findEmailUser.setRole(findEmailUser.getRole().equals("SUPER_ADMIN") ? findEmailUser.getRole() : "USER");
+        findEmailUser.setRole(findEmailUser.getRole()== null  ?  "USER" : findEmailUser.getRole() );
         AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
                 .build();
 
@@ -163,11 +167,12 @@ public class AuthService {
     }
 
     private String generateToken(String secretKey, AuthEntity user) {
+         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
         String jwt = Jwts.builder()
                 .setIssuer(user.getUsername())
                 .setSubject(user.getUsername())
                 .claim("user_id", user.getId())
-                .claim("scope", "admins")
+                .claim("scope", user.getRole())
                 // Fri Jun 24 2016 15:33:42 GMT-0400 (EDT)
                 .setIssuedAt(new Date(System
                         .currentTimeMillis()))
@@ -181,8 +186,8 @@ public class AuthService {
     }
 
     private Key key(String secretKey) {
-        System.out.println("secretKey:" + Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey)));
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+        
+        return  Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     public Map<String, Object> userFilter(GetAllRequest payload) {

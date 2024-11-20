@@ -1,2 +1,2 @@
-up:
-mvn spring-boot:run
+run:
+    mvn spring-boot:run
