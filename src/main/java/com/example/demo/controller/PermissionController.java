@@ -13,7 +13,10 @@ import com.example.demo.dtos.responses.BaseResponse;
 
 import com.example.demo.services.PermissionService;
 
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,10 +27,22 @@ import lombok.experimental.FieldDefaults;
 @RequestMapping("/api/v1")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
+@SecurityRequirement(name ="bearerAuth")
+@Tag(name = "PERMISSION")
 public class PermissionController {
     PermissionService permissionService;
-
+    // 
     @PostMapping("/permission")
+    @Operation(
+        description = "Post endpoint for permission",
+        summary = "this is summery",
+        responses = {
+            @ApiResponse(
+                description="SUCCESS",
+                responseCode="200"
+            )
+        }
+    )
     public BaseResponse<String> createPermission(@RequestBody @Valid PermissionRequest.CreatePermissionRequest body) {
         String response = permissionService.createPermission(body);
         return BaseResponse.<String>builder().result(response).build();

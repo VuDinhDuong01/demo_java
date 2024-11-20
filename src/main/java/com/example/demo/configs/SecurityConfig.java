@@ -21,7 +21,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -29,9 +28,11 @@ public class SecurityConfig {
 
         @Value("${spring.jwt.secretKey_access_token}")
         private String secretKey_access_token;
-        
-        private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login", "/api/v1/role"
-        };
+
+        private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login", "/api/v1/role" };
+        private static final String[] PUBLIC_ROUTER_SWAGGER = { "/swagger-ui/**", "/v2/api-docs", "/v3/api-docs/**",
+                        "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security",
+                        "/configuration/webjars/**" };
 
         @Bean
         public AuthenticationEntryPoint authenticationErrorConfig() {
@@ -49,6 +50,8 @@ public class SecurityConfig {
                                                                 PUBLIC_ROUTE)
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
+                                                .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
+                                                
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
@@ -56,10 +59,10 @@ public class SecurityConfig {
                                                                 // từ header.
                                                                 .decoder(jwtDecoder())
                                                                 // chuyển đổi thành đối tượng phục vụ cho quyền hạn
-                                                                // user.
-                                                                //  .jwtAuthenticationConverter(
-                                                                // jwtAuthenticationConverter())
-                                                ).authenticationEntryPoint(new AuthenticationErrorConfig()));
+
+                                                                .jwtAuthenticationConverter(
+                                                                                jwtAuthenticationConverter()))
+                                                .authenticationEntryPoint(new AuthenticationErrorConfig()));
 
                 return http.build();
         }
@@ -67,24 +70,24 @@ public class SecurityConfig {
         @Bean
         JwtDecoder jwtDecoder() {
                 SecretKeySpec secretKeySpec = new SecretKeySpec(
-                                "Gd7Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==".getBytes(), 
+                                "Gd7Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==".getBytes(),
                                 SignatureAlgorithm.HS256.getJcaName());
-                                
+
                 return NimbusJwtDecoder
                                 .withSecretKey(secretKeySpec)
                                 .macAlgorithm(MacAlgorithm.HS256)
                                 .build();
         };
 
-        // @Bean
-        // public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        //         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        //         grantedAuthoritiesConverter.setAuthorityPrefix("");
+        @Bean
+        public JwtAuthenticationConverter jwtAuthenticationConverter() {
+                JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+                grantedAuthoritiesConverter.setAuthorityPrefix("");
 
-        //         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        //         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        //         return jwtAuthenticationConverter;
-        // }
+                JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+                jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+                return jwtAuthenticationConverter;
+        }
 
         @Bean
         public PasswordEncoder passwordEncoder() {
