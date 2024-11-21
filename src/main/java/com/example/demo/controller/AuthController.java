@@ -117,12 +117,12 @@ public class AuthController {
     }
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public BaseResponse<String> uploadFile(
-            @RequestPart(value = "file", required = true) MultipartFile files)  {
+    public BaseResponse<List<Map<String, String>>> uploadFile(
+            @RequestPart(value = "file", required = true) List<MultipartFile> files)  {
         // List<Map<String, String>> response = 
-       String response =  minioService.uploadFile(files);
+        List<Map<String, String>> response =  minioService.uploadFile(files);
 
-        return BaseResponse.<String>builder().result(response).build();
+        return BaseResponse.<List<Map<String, String>>>builder().result(response).build();
 
     }
 

@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -33,26 +43,35 @@ public class MinioService {
     @Autowired
     MinioClient minioClient;
 
-    public String uploadFile(MultipartFile files) {
-
-        try (InputStream inputStream = files.getInputStream()) {
-            try {
+    public List<Map<String, String>> uploadFile(List<MultipartFile> files) {
+        List<Map<String, String>> listUrl = new ArrayList<>();
+        for (MultipartFile file : files) {
+            try (InputStream inputStream = file.getInputStream()) {
                 minioClient.putObject(PutObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(files.getOriginalFilename())
+                        .object(file.getOriginalFilename())
                         .stream(inputStream, inputStream.available(), -1)
                         .build());
-                return minioClient.getPresignedObjectUrl(
-                        GetPresignedObjectUrlArgs.builder().bucket(bucketName).method(Method.GET).expiry(3600)
-                                .object(files.getOriginalFilename())
-                                .extraQueryParams(Map.of("response-content-type", "image/png")).build());
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage());
+            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+                    | IllegalArgumentException | IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            try {
+                String url = minioClient.getPresignedObjectUrl(
+                        GetPresignedObjectUrlArgs.builder().bucket(bucketName).method(Method.GET).expiry(3600)
+                                .object(file.getOriginalFilename())
+                                .extraQueryParams(Map.of("response-content-type", "image/png")).build());
+                Map<String, String> map = new HashMap<>();
+                map.put("url", url);
+                map.put("type", "image");
+                listUrl.add(map);
+            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                    | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | ServerException
+                    | IllegalArgumentException | IOException e) {
+                e.printStackTrace();
+            }
         }
-        return null;
-
+        return listUrl;
     }
 }
