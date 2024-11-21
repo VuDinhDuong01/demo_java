@@ -4,6 +4,10 @@ import java.sql.Date;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+
 import lombok.Data;
 
 @Data
@@ -26,5 +30,17 @@ public class Utils {
 
         Duration duration = Duration.between(currentTime, localTime);
         return duration.toMinutes() > 5;
+    }
+
+    public static String getUserId(){
+
+        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt= (Jwt) authentication.getPrincipal();
+        if(authentication != null && jwt instanceof Jwt){
+            String user_id= jwt.getClaim("user_id");
+            return user_id;
+        }
+
+        return "can not get user id";
     }
 }

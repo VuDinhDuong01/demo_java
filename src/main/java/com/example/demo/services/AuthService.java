@@ -6,13 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import javax.crypto.SecretKey;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +42,6 @@ import com.example.demo.utils.Utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.criteria.Path;
@@ -147,8 +145,6 @@ public class AuthService {
         if (!hashedPassword) {
             throw new RuntimeException("password not match.");
         }
-        System.out.println("secretKey_access_token:" + secretKey_access_token);
-        System.out.println("secretKey_refresh_token:" + secretKey_refresh_token);
         String access_token = this.generateToken(secretKey_access_token, findEmailUser);
         String refresh_token = this.generateToken(secretKey_refresh_token, findEmailUser);
 
@@ -157,7 +153,6 @@ public class AuthService {
         token.setRefresh_token(refresh_token);
 
         RoleEntity getRoleDefault = roleRepository.findByName("USER");
-
         findEmailUser.setPermissions(getRoleDefault);
         findEmailUser.setRole(findEmailUser.getRole()== null  ?  "USER" : findEmailUser.getRole() );
         AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
@@ -167,16 +162,14 @@ public class AuthService {
     }
 
     private String generateToken(String secretKey, AuthEntity user) {
-         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
         String jwt = Jwts.builder()
                 .setIssuer(user.getUsername())
                 .setSubject(user.getUsername())
                 .claim("user_id", user.getId())
-                .claim("scope", user.getRole())
-                // Fri Jun 24 2016 15:33:42 GMT-0400 (EDT)
+                .claim("scope", user
+                        .getRole())
                 .setIssuedAt(new Date(System
                         .currentTimeMillis()))
-                // Sat Jun 24 2116 15:33:42 GMT-0400 (EDT)
                 .setExpiration(new Date(System.currentTimeMillis() + 3600000))
                 .signWith(
                         key(secretKey),
@@ -184,6 +177,8 @@ public class AuthService {
                 .compact();
         return jwt;
     }
+
+
 
     private Key key(String secretKey) {
         

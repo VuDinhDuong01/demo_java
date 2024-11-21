@@ -19,7 +19,7 @@ public class GlobalException {
     public ResponseEntity<BaseResponse<Null>> resourceRuntimeException(RuntimeException ex) {
         BaseResponse<Null> error = BaseResponse.<Null>builder().error(ex.getMessage())
                 .status(HttpStatus.BAD_REQUEST.value()).result(null).build();
-
+                System.out.println("error auth:" + ex.getStackTrace().toString());
         return ResponseEntity.badRequest().body(error);
     }
 

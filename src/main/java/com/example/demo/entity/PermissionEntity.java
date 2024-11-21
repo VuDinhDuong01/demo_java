@@ -17,14 +17,16 @@ import lombok.experimental.FieldDefaults;
 @Data
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name ="permission")
-public class PermissionEntity extends BaseEntity{
+@Table(name = "permission")
+public class PermissionEntity extends BaseEntity {
     @Id
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
     String name;
-    
+
     String description;
+
+    Boolean isDelete = false;
 }

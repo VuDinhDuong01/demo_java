@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,9 +26,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RoleController {
     private RoleService roleService;
+    
     @PostMapping("/role")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public BaseResponse<RoleResponse.CreateRoleResponse> createRole(@RequestBody @Valid RoleRequest.CreateRoleRequest body){
-
         RoleResponse.CreateRoleResponse response = roleService.createRole(body);
         return BaseResponse.<RoleResponse.CreateRoleResponse>builder().result(response).build();
     }

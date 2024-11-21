@@ -9,9 +9,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -51,7 +54,7 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
-                                                
+
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
@@ -59,7 +62,6 @@ public class SecurityConfig {
                                                                 // từ header.
                                                                 .decoder(jwtDecoder())
                                                                 // chuyển đổi thành đối tượng phục vụ cho quyền hạn
-
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
                                                 .authenticationEntryPoint(new AuthenticationErrorConfig()));
@@ -70,7 +72,7 @@ public class SecurityConfig {
         @Bean
         JwtDecoder jwtDecoder() {
                 SecretKeySpec secretKeySpec = new SecretKeySpec(
-                                "Gd7Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==".getBytes(),
+                                secretKey_access_token.getBytes(),
                                 SignatureAlgorithm.HS256.getJcaName());
 
                 return NimbusJwtDecoder
@@ -82,7 +84,9 @@ public class SecurityConfig {
         @Bean
         public JwtAuthenticationConverter jwtAuthenticationConverter() {
                 JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+                // TỰ thêm chữ đứng đầu
                 grantedAuthoritiesConverter.setAuthorityPrefix("");
+                grantedAuthoritiesConverter.setAuthoritiesClaimName("scope");
 
                 JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
                 jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
