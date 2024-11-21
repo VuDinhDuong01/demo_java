@@ -1,14 +1,19 @@
 package com.example.demo.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dtos.requests.ForgotPasswordRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
@@ -21,6 +26,7 @@ import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.BaseResponse;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.services.AuthService;
+import com.example.demo.services.MinioService;
 
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -31,16 +37,17 @@ import lombok.experimental.FieldDefaults;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
 
-    @Autowired
     AuthService authService;
+    MinioService minioService;
 
     @PostMapping("/register")
     public BaseResponse<AuthResponse.RegisterResponse> register(@RequestBody() @Valid RegisterRequest body) {
         AuthResponse.RegisterResponse response = authService.register(body);
-        BaseResponse<AuthResponse.RegisterResponse> baseResponse = BaseResponse.<AuthResponse.RegisterResponse>builder().result(response).build();
+        BaseResponse<AuthResponse.RegisterResponse> baseResponse = BaseResponse.<AuthResponse.RegisterResponse>builder()
+                .result(response).build();
         return baseResponse;
     }
 
@@ -54,7 +61,8 @@ public class AuthController {
     @PostMapping("/login")
     public BaseResponse<AuthResponse.LoginResponse> login(@RequestBody @Valid LoginRequest body) {
         AuthResponse.LoginResponse response = authService.login(body);
-        BaseResponse<AuthResponse.LoginResponse> baseResponse = BaseResponse.<AuthResponse.LoginResponse>builder().result(response)
+        BaseResponse<AuthResponse.LoginResponse> baseResponse = BaseResponse.<AuthResponse.LoginResponse>builder()
+                .result(response)
                 .build();
         return baseResponse;
 
@@ -106,6 +114,16 @@ public class AuthController {
                 .result(resetPasswordResponse)
                 .build();
         return baseResponse;
+    }
+
+    @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public BaseResponse<String> uploadFile(
+            @RequestPart(value = "file", required = true) MultipartFile files)  {
+        // List<Map<String, String>> response = 
+       String response =  minioService.uploadFile(files);
+
+        return BaseResponse.<String>builder().result(response).build();
+
     }
 
 }

@@ -20,5 +20,10 @@ spring:
   jwt:
     secretKey_access_token: Gd7Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==
     secretKey_refresh_token: Gd8Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==
+  minio:
+    secretKey_minio: xIMRv8tM6Fa8QOHQmUvzsLy6iicAjl9sgaAi5ZaU
+    accessKey_minio: bAdm5n61bTASbmt5ma4n
+    url: http://localhost:9000
+    bucket_name: upload-file
 server:
   port: 5000

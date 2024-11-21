@@ -8,6 +8,7 @@ import com.example.demo.entity.RoleEntity;
 import com.example.demo.mapper.RoleMapper;
 import com.example.demo.repositorys.PermissionRepository;
 import com.example.demo.repositorys.RoleRepository;
+import com.example.demo.utils.Utils;
 
 import java.util.HashSet;
 import lombok.AccessLevel;
@@ -31,9 +32,12 @@ public class RoleService {
         if (checkRoleExist != null) {
             throw new RuntimeException("role existed");
         }
+
+        String user_id = Utils.getUserId();
         var role = roleMapper.toRole(payload);
         var permissions = permissionRepository.findByNameIn(payload.getPermissions());
         role.setPermissions(permissions);
+        role.setCreatedBy(user_id);
         roleRepository.save(role);
         role.setPermissions(new HashSet<>(permissions));
 
