@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +28,7 @@ import com.example.demo.dtos.responses.BaseResponse;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.services.AuthService;
 import com.example.demo.services.MinioService;
+import com.example.demo.utils.Utils;
 
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -118,12 +120,18 @@ public class AuthController {
 
     @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public BaseResponse<List<Map<String, String>>> uploadFile(
-            @RequestPart(value = "file", required = true) List<MultipartFile> files)  {
-        // List<Map<String, String>> response = 
-        List<Map<String, String>> response =  minioService.uploadFile(files);
+            @RequestPart(value = "file", required = true) List<MultipartFile> files) {
+        List<Map<String, String>> response = minioService.uploadFile(files);
 
         return BaseResponse.<List<Map<String, String>>>builder().result(response).build();
 
+    }
+
+    @GetMapping(path = "/get-signature")
+    public BaseResponse<List<String>> getUrls() {
+        String userid = Utils.getUserId();
+        List<String> response = minioService.getUrl(userid);
+        return BaseResponse.<List<String>>builder().result(response).build();
     }
 
 }

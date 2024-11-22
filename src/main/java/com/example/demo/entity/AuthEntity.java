@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
@@ -34,6 +36,8 @@ public class AuthEntity extends BaseEntity {
 
     @JsonIgnore
     String verify_email;
+
+    List<String> signature;
 
     @JsonIgnore
     String forgotPassword;
