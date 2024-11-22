@@ -100,9 +100,8 @@ public class MinioService {
         List<String> urls = new ArrayList<>();
         if (signatures.size() == 0)
             return new ArrayList<>();
-        System.out.println("signature:" +  signatures);
+        System.out.println("signature:" + signatures);
         for (String signature : signatures) {
-
             try {
                 String url = minioClient.getPresignedObjectUrl(
                         GetPresignedObjectUrlArgs
@@ -112,8 +111,7 @@ public class MinioService {
                                 .expiry(3600)
                                 .object(signature)
                                 .extraQueryParams(Map.of("response-content-type", "image/png"))
-                                .build()
-                );
+                                .build());
                 urls.add(url);
             } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
                     | InvalidResponseException | NoSuchAlgorithmException | XmlParserException | ServerException
@@ -121,7 +119,6 @@ public class MinioService {
 
                 e.printStackTrace();
             }
-
         }
         return urls;
 
