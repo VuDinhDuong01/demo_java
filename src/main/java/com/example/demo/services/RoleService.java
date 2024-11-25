@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.example.demo.dtos.requests.RoleRequest;
 import com.example.demo.dtos.responses.RoleResponse;
 import com.example.demo.entity.RoleEntity;
+import com.example.demo.exceptions.ForbiddenException;
 import com.example.demo.mapper.RoleMapper;
 import com.example.demo.repositorys.PermissionRepository;
 import com.example.demo.repositorys.RoleRepository;
@@ -30,7 +31,7 @@ public class RoleService {
 
         RoleEntity checkRoleExist = roleRepository.findByName(payload.getName());
         if (checkRoleExist != null) {
-            throw new RuntimeException("role existed");
+            throw new ForbiddenException("role existed");
         }
 
         String user_id = Utils.getUserId();
