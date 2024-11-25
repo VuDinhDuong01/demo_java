@@ -26,6 +26,6 @@ spring:
     url: http://localhost:9000
     bucket_name: upload-file
   kafka:
-    bootstrapAddress: localhost:9092
+    bootstrap-servers: localhost:29092
 server:
   port: 5000

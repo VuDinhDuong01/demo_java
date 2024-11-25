@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -41,6 +43,7 @@ import com.example.demo.exceptions.ForbiddenException;
 import com.example.demo.exceptions.NotFoundException;
 import com.example.demo.repositorys.AuthRepository;
 import com.example.demo.repositorys.RoleRepository;
+import com.example.demo.utils.ImplementAuth;
 import com.example.demo.utils.Utils;
 
 import io.jsonwebtoken.Jwts;
@@ -58,8 +61,7 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-
-public class AuthService {
+public class AuthService implements ImplementAuth{
     @Value("${spring.jwt.secretKey_access_token}")
     private String secretKey_access_token;
 
@@ -76,6 +78,11 @@ public class AuthService {
     PasswordEncoder passwordEncoder;
     @Autowired 
     KafkaTemplate kafkaTemplate;
+
+    @Override 
+    public UserDetailsService userDetailsService() {
+        return email -> authRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
 
     public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
@@ -168,7 +175,7 @@ public class AuthService {
         return loginResponse;
     }
 
-    private String generateToken(String secretKey, AuthEntity user) {
+    public String generateToken(String secretKey, AuthEntity user) {
         String jwt = Jwts.builder()
                 .setIssuer(user.getUsername())
                 .setSubject(user.getUsername())
