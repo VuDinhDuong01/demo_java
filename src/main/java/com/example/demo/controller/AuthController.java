@@ -25,7 +25,7 @@ import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.BaseResponse;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.services.AuthService;
-import com.example.demo.services.MinioService;
+// import com.example.demo.services.MinioService;
 import com.example.demo.utils.Utils;
 
 import jakarta.validation.Valid;
@@ -41,7 +41,7 @@ import lombok.experimental.FieldDefaults;
 public class AuthController {
 
     AuthService authService;
-    MinioService minioService;
+    // MinioService minioService;
 
     @PostMapping("/register")
     public BaseResponse<AuthResponse.RegisterResponse> register(@RequestBody() @Valid RegisterRequest body) {
@@ -116,20 +116,20 @@ public class AuthController {
         return baseResponse;
     }
 
-    @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public BaseResponse<List<Map<String, String>>> uploadFile(
-            @RequestPart(value = "file", required = true) List<MultipartFile> files) {
-        List<Map<String, String>> response = minioService.uploadFile(files);
+    // @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    // public BaseResponse<List<Map<String, String>>> uploadFile(
+    //         @RequestPart(value = "file", required = true) List<MultipartFile> files) {
+    //     // List<Map<String, String>> response = minioService.uploadFile(files);
 
-        return BaseResponse.<List<Map<String, String>>>builder().result(response).build();
+    //     return BaseResponse.<List<Map<String, String>>>builder().result(response).build();
 
-    }
+    // }
 
-    @GetMapping(path = "/get-signature")
-    public BaseResponse<List<String>> getUrls() {
-        String userid = Utils.getUserId();
-        List<String> response = minioService.getUrl(userid);
-        return BaseResponse.<List<String>>builder().result(response).build();
-    }
+    // @GetMapping(path = "/get-signature")
+    // public BaseResponse<List<String>> getUrls() {
+    //     String userid = Utils.getUserId();
+    //     // List<String> response = minioService.getUrl(userid);
+    //     return BaseResponse.<List<String>>builder().result(response).build();
+    // }
 
 }

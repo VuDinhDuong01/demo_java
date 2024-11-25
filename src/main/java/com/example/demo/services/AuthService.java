@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -73,6 +74,8 @@ public class AuthService {
     RoleRepository roleRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired 
+    KafkaTemplate kafkaTemplate;
 
     public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
@@ -88,13 +91,14 @@ public class AuthService {
         Map<String, Object> p = new HashMap<>();
         p.put("send-token", token);
         context.setVariables(p);
-
+        
         // try {
         // emailService.sendEmail(body.getEmail(), subject, html, context);
         // } catch (MessagingException e) {
         // System.out.println("error send mail");
         // e.printStackTrace();
         // }
+        kafkaTemplate.send("confirm-acount-topic","duong2lophot@gmail.com");
 
         String id = UUID.randomUUID().toString();
 
@@ -266,12 +270,12 @@ public class AuthService {
         Map<String, Object> field = new HashMap<>();
         field.put("field", token);
         context.setVariables(field);
-        try {
-            emailService.sendEmail(payload.getEmail(), subject, html, context);
-        } catch (MessagingException e) {
-            System.out.println("error send mail");
-            e.printStackTrace();
-        }
+        // try {
+        //     emailService.sendEmail(payload.getEmail(), subject, html, context);
+        // } catch (MessagingException e) {
+        //     System.out.println("error send mail");
+        //     e.printStackTrace();
+        // }
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
         AuthEntity authEntity = new AuthEntity();
         authEntity.setForgotPassword(subject);
