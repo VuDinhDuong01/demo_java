@@ -11,15 +11,28 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.example.demo.dtos.responses.BaseResponse;
-import jakarta.validation.constraints.Null;
+import com.example.demo.dtos.responses.ErrorResponse;
 
 @ControllerAdvice
 public class GlobalException {
+
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<BaseResponse<Null>> resourceRuntimeException(RuntimeException ex) {
-        BaseResponse<Null> error = BaseResponse.<Null>builder().error(ex.getMessage())
-                .status(HttpStatus.BAD_REQUEST.value()).result(null).build();
-        return ResponseEntity.badRequest().body(error);
+    public ResponseEntity<BaseResponse<String>> handleRuntimeException(RuntimeException ex) {
+        BaseResponse<String> errorResponse = BaseResponse.<String>builder()
+                .error(ex.getMessage())
+                .result(null)
+                .status(HttpStatus.BAD_REQUEST.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(ClassNotFoundException.class)
+    public ResponseEntity<ErrorResponse> resourceRuntimeException(ClassNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse();
+        error.setMessage(ex.getMessage());
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,7 +49,14 @@ public class GlobalException {
                 .result(errors)
                 .error(ex.getBody().getDetail())
                 .build();
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error);
+    }
 
-        return ResponseEntity.badRequest().body(error);
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setStatusCode(HttpStatus.FORBIDDEN.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 }

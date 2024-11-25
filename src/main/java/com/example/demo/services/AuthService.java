@@ -77,7 +77,8 @@ public class AuthService {
     public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
         if (findEmailExsist != null) {
-            throw new NotFoundException("Tài khoản user đã tồn tại.");
+            System.out.println("user not found:");
+            throw new ForbiddenException("Tài khoản user đã tồn tại.");
         }
         String subject = "Token của bạn.";
         Context context = new Context();

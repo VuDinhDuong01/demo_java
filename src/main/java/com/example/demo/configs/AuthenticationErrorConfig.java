@@ -10,11 +10,10 @@ import com.example.demo.dtos.responses.BaseResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse; 
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthenticationErrorConfig implements AuthenticationEntryPoint {
-
     @Override
     public void commence(HttpServletRequest request,
             HttpServletResponse response,
@@ -26,7 +25,7 @@ public class AuthenticationErrorConfig implements AuthenticationEntryPoint {
         log.error("Request URL: {}", request.getRequestURI());
         log.error("HTTP Method: {}", request.getMethod());
         log.error("Remote Address: {}", request.getRemoteAddr());
-        log.error("Exception Message: {}", authException.getMessage());
+       log.error("Exception Message: {}", authException.getMessage()); 
         
         ObjectMapper objectMapper = new ObjectMapper();
         response.setContentType("application/json");

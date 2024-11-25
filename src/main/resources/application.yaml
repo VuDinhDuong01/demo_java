@@ -25,5 +25,7 @@ spring:
     accessKey_minio: J3xLDIlgcn9Utz22BIv8
     url: http://localhost:9000
     bucket_name: upload-file
+  kafka:
+    bootstrapAddress: localhost:9092
 server:
   port: 5000
