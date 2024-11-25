@@ -36,6 +36,8 @@ import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.Token;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.entity.RoleEntity;
+import com.example.demo.exceptions.ForbiddenException;
+import com.example.demo.exceptions.NotFoundException;
 import com.example.demo.repositorys.AuthRepository;
 import com.example.demo.repositorys.RoleRepository;
 import com.example.demo.utils.Utils;
@@ -75,7 +77,8 @@ public class AuthService {
     public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
         if (findEmailExsist != null) {
-            throw new RuntimeException("Tài khoản user đã tồn tại.");
+            System.out.println("user not found:");
+            throw new ForbiddenException("Tài khoản user đã tồn tại.");
         }
         String subject = "Token của bạn.";
         Context context = new Context();
@@ -114,10 +117,10 @@ public class AuthService {
         AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
         boolean checkVerify = Utils.checkVerifyTimer((java.sql.Date) findEmailUser.getCreatedAt());
         if (findEmailUser.getVerify_email() != payload.getToken()) {
-            throw new RuntimeException("Token của bạn không đúng");
+            throw new ForbiddenException("Token của bạn không đúng");
         }
         if (!checkVerify) {
-            throw new RuntimeException("Token của bạn đã hết hạn");
+            throw new ForbiddenException("Token của bạn đã hết hạn");
         }
         AuthEntity authEntity = new AuthEntity();
         authEntity.setVerify_email("");
@@ -132,7 +135,7 @@ public class AuthService {
         AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
 
         if (findEmailUser == null) {
-            throw new RuntimeException("user not exsist");
+            throw new NotFoundException("user not exsist");
         }
 
         String checkVerify = findEmailUser.getVerify_email();
@@ -143,7 +146,7 @@ public class AuthService {
 
         Boolean hashedPassword = passwordEncoder.matches(payload.getPassword(), findEmailUser.getPassword());
         if (!hashedPassword) {
-            throw new RuntimeException("password not match.");
+            throw new ForbiddenException("password not match.");
         }
         String access_token = this.generateToken(secretKey_access_token, findEmailUser);
         String refresh_token = this.generateToken(secretKey_refresh_token, findEmailUser);
@@ -247,7 +250,7 @@ public class AuthService {
 
         AuthEntity findUserUpdate = authRepository.findById(payload.getUserIdUpdate()).orElse(null);
         if (findUserUpdate == null) {
-            throw new RuntimeException("Không tìm thấy user.");
+            throw new NotFoundException("Không tìm thấy user.");
         }
         findUserUpdate.setUsername(payload.getUsername());
         findUserUpdate.setUpdatedAt(new Date());
@@ -280,11 +283,11 @@ public class AuthService {
     public ForgotPasswordRequest verifyForgotPassword(VerifyTokenForgotPasswordRequest payload) {
         AuthEntity user = authRepository.findByEmail(payload.getEmail());
         if (user == null) {
-            throw new RuntimeException("Tài khoản không tồn tại.");
+            throw new NotFoundException("Tài khoản không tồn tại.");
         }
 
         if (user.getForgotPassword() != payload.getToken()) {
-            throw new RuntimeException("Mã xác thực không đúng");
+            throw new ForbiddenException("Mã xác thực không đúng");
         }
 
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
@@ -297,7 +300,7 @@ public class AuthService {
     public String resetPassword(ResetPasswordRequest payload) {
         AuthEntity user = authRepository.findByEmail(payload.getEmail());
         if (user == null) {
-            throw new RuntimeException("Tài khoản không tồn tại.");
+            throw new NotFoundException("Tài khoản không tồn tại.");
         }
 
         AuthEntity authEntity = new AuthEntity();

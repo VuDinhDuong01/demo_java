@@ -29,7 +29,7 @@ public class SecurityConfig {
         @Value("${spring.jwt.secretKey_access_token}")
         private String secretKey_access_token;
 
-        private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login", "/api/v1/role" };
+        private static final String[] PUBLIC_ROUTE = {"/api/v1/register", "/api/v1/login"};
         private static final String[] PUBLIC_ROUTER_SWAGGER = { "/swagger-ui/**", "/v2/api-docs", "/v3/api-docs/**",
                         "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security",
                         "/configuration/webjars/**" };
@@ -46,12 +46,9 @@ public class SecurityConfig {
                                 .csrf().disable()
                                 .cors().disable()
                                 .authorizeHttpRequests((authorize) -> authorize
-                                                .requestMatchers(HttpMethod.POST,
-                                                                PUBLIC_ROUTE)
-                                                .permitAll()
+                                                .requestMatchers(HttpMethod.POST, PUBLIC_ROUTE).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
-
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
@@ -61,8 +58,9 @@ public class SecurityConfig {
                                                                 // chuyển đổi thành đối tượng phục vụ cho quyền hạn
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
-                                                .authenticationEntryPoint(new AuthenticationErrorConfig()));
-
+                                                .authenticationEntryPoint(new AuthenticationErrorConfig()
+                                                )
+                                                );
                 return http.build();
         }
 
@@ -71,7 +69,6 @@ public class SecurityConfig {
                 SecretKeySpec secretKeySpec = new SecretKeySpec(
                                 secretKey_access_token.getBytes(),
                                 SignatureAlgorithm.HS256.getJcaName());
-
                 return NimbusJwtDecoder
                                 .withSecretKey(secretKeySpec)
                                 .macAlgorithm(MacAlgorithm.HS256)

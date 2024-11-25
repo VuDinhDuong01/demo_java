@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.entity.AuthEntity;
+import com.example.demo.exceptions.NotFoundException;
 import com.example.demo.repositorys.AuthRepository;
 import com.example.demo.utils.Utils;
 
@@ -94,7 +95,7 @@ public class MinioService {
     public List<String> getUrl(String userId) {
         AuthEntity user = authRepository.findById(userId).orElse(null);
         if (user == null) {
-            throw new RuntimeException("user not found");
+            throw new NotFoundException("user not found");
         }
         List<String> signatures = user.getSignature();
         List<String> urls = new ArrayList<>();
