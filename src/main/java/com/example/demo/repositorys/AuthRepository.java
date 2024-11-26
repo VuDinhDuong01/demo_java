@@ -12,8 +12,8 @@ import com.example.demo.entity.AuthEntity;
 
 @Repository
 public interface AuthRepository extends JpaRepository<AuthEntity,String> {
- Optional<AuthEntity> findByEmail(String email);
- AuthEntity findByUsername(String username);
+ AuthEntity findByEmail(String email);
+ Optional<AuthEntity> findByUsername(String username);
     Page<AuthEntity> findAll(Specification<AuthEntity> spec, Pageable pageable);
     AuthEntity findByRole(String role);
 } 

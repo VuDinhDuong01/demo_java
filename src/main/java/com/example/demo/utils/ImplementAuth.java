@@ -1,6 +1,5 @@
 package com.example.demo.utils;
 
-
 import java.util.Map;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,26 +14,24 @@ import com.example.demo.dtos.requests.VerifyTokenForgotPasswordRequest;
 import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.entity.AuthEntity;
 
-public interface ImplementAuth {
+public interface ImplementAuth extends  UserDetailsService{
 
+  // UserDetailsService userDetailsService();
 
-    UserDetailsService userDetailsService();
+  AuthResponse.RegisterResponse register(RegisterRequest body);
 
-   AuthResponse.RegisterResponse register(RegisterRequest body);
+  String verifyEmail(VerifyTokenForgotPasswordRequest payload);
 
-     String verifyEmail(VerifyTokenForgotPasswordRequest payload);
+  AuthResponse.LoginResponse login(LoginRequest payload);
 
-   AuthResponse.LoginResponse login(LoginRequest payload);
+  Map<String, Object> userFilter(GetAllRequest payload);
 
- String generateToken(String secretKey, AuthEntity user);
+  AuthEntity updateUser(UpdateUserRequest payload);
 
-    Map<String, Object> userFilter(GetAllRequest payload);
+  ForgotPasswordRequest forgotPassword(ForgotPasswordRequest payload);
 
-   AuthEntity updateUser(UpdateUserRequest payload);
+  ForgotPasswordRequest verifyForgotPassword(VerifyTokenForgotPasswordRequest payload);
 
-   ForgotPasswordRequest forgotPassword(ForgotPasswordRequest payload);
-
-   ForgotPasswordRequest verifyForgotPassword(VerifyTokenForgotPasswordRequest payload);
-String resetPassword(ResetPasswordRequest payload);
-
+  String resetPassword(ResetPasswordRequest payload);
+  
 }

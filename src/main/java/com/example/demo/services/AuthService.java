@@ -1,6 +1,5 @@
 package com.example.demo.services;
 
-import java.security.Key;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,8 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,12 +43,9 @@ import com.example.demo.exceptions.NotFoundException;
 import com.example.demo.repositorys.AuthRepository;
 import com.example.demo.repositorys.RoleRepository;
 import com.example.demo.utils.ImplementAuth;
+import com.example.demo.utils.TokenType;
 import com.example.demo.utils.Utils;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import jakarta.mail.MessagingException;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
@@ -76,13 +72,27 @@ public class AuthService implements ImplementAuth{
     RoleRepository roleRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
-    @Autowired 
+    @Autowired
     KafkaTemplate kafkaTemplate;
+    @Autowired
+    JwtService jwtService;
 
-    @Override 
-    public UserDetailsService userDetailsService() {
-        return email -> authRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        AuthEntity user = authRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("user không tồn tại"));
+        List<String> roles = new ArrayList<>();
+        roles.add(user.getRole());
+        List<SimpleGrantedAuthority> grantedAuthorities = roles.stream()
+                .map(authority -> new SimpleGrantedAuthority(authority)).collect(Collectors.toList());
+
+        return new org.springframework.security.core.userdetails.User(user.getUsername(),
+                user.getPassword(), grantedAuthorities);
     }
+    // public UserDetailsService userDetailsService() {
+    // return username -> authRepository.findByUsername(username)
+    // .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    // }
 
     public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
@@ -159,8 +169,8 @@ public class AuthService implements ImplementAuth{
         if (!hashedPassword) {
             throw new ForbiddenException("password not match.");
         }
-        String access_token = this.generateToken(secretKey_access_token, findEmailUser);
-        String refresh_token = this.generateToken(secretKey_refresh_token, findEmailUser);
+        String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 3600);
+        String refresh_token = jwtService.generateToken(TokenType.REFRESH_TOKEN, findEmailUser, 3600);
 
         Token token = new Token();
         token.setAccess_token(access_token);
@@ -168,35 +178,11 @@ public class AuthService implements ImplementAuth{
 
         RoleEntity getRoleDefault = roleRepository.findByName("USER");
         findEmailUser.setPermissions(getRoleDefault);
-        findEmailUser.setRole(findEmailUser.getRole()== null  ?  "USER" : findEmailUser.getRole() );
+        findEmailUser.setRole(findEmailUser.getRole() == null ? "USER" : findEmailUser.getRole());
         AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
                 .build();
 
         return loginResponse;
-    }
-
-    public String generateToken(String secretKey, AuthEntity user) {
-        String jwt = Jwts.builder()
-                .setIssuer(user.getUsername())
-                .setSubject(user.getUsername())
-                .claim("user_id", user.getId())
-                .claim("scope", user
-                        .getRole())
-                .setIssuedAt(new Date(System
-                        .currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
-                .signWith(
-                        key(secretKey),
-                        SignatureAlgorithm.HS256)
-                .compact();
-        return jwt;
-    }
-
-
-
-    private Key key(String secretKey) {
-        
-        return  Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     public Map<String, Object> userFilter(GetAllRequest payload) {
@@ -320,4 +306,5 @@ public class AuthService implements ImplementAuth{
 
         return "reset password success";
     }
+
 }
