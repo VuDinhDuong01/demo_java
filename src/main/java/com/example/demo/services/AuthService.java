@@ -109,7 +109,7 @@ public class AuthService implements ImplementAuth {
         Map<String, Object> p = new HashMap<>();
         p.put("send-token", token);
         context.setVariables(p);
-
+        
         // try {
         // emailService.sendEmail(body.getEmail(), subject, html, context);
         // } catch (MessagingException e) {

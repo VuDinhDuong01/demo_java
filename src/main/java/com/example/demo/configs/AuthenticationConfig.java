@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.example.demo.services.AuthService;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,7 +28,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthenticationConfig {
     private final PreFilter preFilter;
-    private final AuthService authService;
+    // private final AuthService authService;
 
     final String[] WHITE_LIST = { "/api/v1/register", "/api/v1/login" };
 
