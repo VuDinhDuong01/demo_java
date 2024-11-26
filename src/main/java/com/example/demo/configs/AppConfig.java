@@ -14,7 +14,6 @@ import com.example.demo.repositorys.AuthRepository;
 public class AppConfig {
     @Bean
     CommandLineRunner initDatabase(AuthRepository authRepository, PasswordEncoder passwordEncoder) {
-
         return args -> {
             AuthEntity findAdminExisted = authRepository.findByRole("SUPER_ADMIN");
             if (findAdminExisted ==null ) {
