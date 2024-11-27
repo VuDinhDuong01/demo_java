@@ -39,6 +39,7 @@ import com.example.demo.exceptions.NotFoundException;
 import com.example.demo.repositorys.AuthRepository;
 import com.example.demo.repositorys.RoleRepository;
 import com.example.demo.utils.Utils;
+import com.example.demo.utils.Enum.RoleType;
 import com.example.demo.utils.Enum.TokenType;
 
 import jakarta.persistence.criteria.Path;
@@ -100,8 +101,10 @@ public class AuthService {
         String hashedPassword = passwordEncoder.encode(body.getPassword());
 
         AuthEntity authEntity = new AuthEntity();
+        authEntity.setRole(RoleType.USER.name());
         authEntity.setEmail(body.getEmail());
         authEntity.setVerifyEmail(token);
+        authEntity.setAuthProvider("");
         authEntity.setPassword(hashedPassword);
         authEntity.setUsername(body.getUsername());
         authEntity.setId(id);
@@ -109,7 +112,6 @@ public class AuthService {
         authRepository.save(authEntity);
         AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().id(id).build();
         return registerResponse;
-
     }
 
     public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
@@ -147,8 +149,8 @@ public class AuthService {
         if (!hashedPassword) {
             throw new ForbiddenException("password not match.");
         }
-        String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 3600);
-        String refresh_token = jwtService.generateToken(TokenType.REFRESH_TOKEN, findEmailUser, 3600);
+        String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 3600000);
+        String refresh_token = jwtService.generateToken(TokenType.REFRESH_TOKEN, findEmailUser, 360000);
 
         Token token = new Token();
         token.setAccess_token(access_token);
@@ -284,5 +286,4 @@ public class AuthService {
 
         return "reset password success";
     }
-
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.example.demo.utils.Enum.RoleType;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -17,6 +19,8 @@ public class RoleValidator implements ConstraintValidator<Role, String> {
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext cxt) {
-        return this.ListRole.contains(value);
+        System.out.println("value:" +  value);
+        System.out.println("check:" + this.ListRole );
+        return this.ListRole.contains(RoleType.valueOf(value));
     }
 }
