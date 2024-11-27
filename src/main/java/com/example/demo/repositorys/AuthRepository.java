@@ -1,7 +1,5 @@
 package com.example.demo.repositorys;
 
-
-
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;

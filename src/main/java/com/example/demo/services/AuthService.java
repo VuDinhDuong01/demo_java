@@ -57,8 +57,7 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class AuthService implements ImplementAuth {
-
+public class AuthService implements ImplementAuth{
     @Value("${spring.jwt.secretKey_access_token}")
     private String secretKey_access_token;
 
@@ -116,7 +115,7 @@ public class AuthService implements ImplementAuth {
         // System.out.println("error send mail");
         // e.printStackTrace();
         // }
-        kafkaTemplate.send("confirm-acount-topic", "duong2lophot@gmail.com");
+        kafkaTemplate.send("confirm-acount-topic","duong2lophot@gmail.com");
 
         String id = UUID.randomUUID().toString();
 
@@ -265,10 +264,10 @@ public class AuthService implements ImplementAuth {
         field.put("field", token);
         context.setVariables(field);
         // try {
-        // emailService.sendEmail(payload.getEmail(), subject, html, context);
+        //     emailService.sendEmail(payload.getEmail(), subject, html, context);
         // } catch (MessagingException e) {
-        // System.out.println("error send mail");
-        // e.printStackTrace();
+        //     System.out.println("error send mail");
+        //     e.printStackTrace();
         // }
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
         AuthEntity authEntity = new AuthEntity();
