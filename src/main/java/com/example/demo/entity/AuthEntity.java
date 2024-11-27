@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -25,8 +26,10 @@ public class AuthEntity extends BaseEntity {
     String username;
 
     @JsonIgnore
+    @Column(name = "password", nullable = false)
     String password;
 
+    @Column(name = "email", unique = true, nullable = false)
     String email;
     
     String avatar;
@@ -35,14 +38,19 @@ public class AuthEntity extends BaseEntity {
     Integer verify = 0;
 
     @JsonIgnore
-    String verify_email;
+    @Column(name = "verify_email")
+    String verifyEmail;
 
     List<String> signature;
 
     @JsonIgnore
+    @Column(name="forgot_password")
     String forgotPassword;
 
     String role;
+
+    @Column(name = "auth_provider")
+    String authProvider;
 
     @ManyToOne
     RoleEntity permissions;

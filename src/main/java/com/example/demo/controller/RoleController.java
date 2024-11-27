@@ -28,7 +28,7 @@ public class RoleController {
     private RoleService roleService;
     
     @PostMapping("/role")
-    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    // @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public BaseResponse<RoleResponse.CreateRoleResponse> createRole(@RequestBody @Valid RoleRequest.CreateRoleRequest body){
         RoleResponse.CreateRoleResponse response = roleService.createRole(body);
         return BaseResponse.<RoleResponse.CreateRoleResponse>builder().result(response).build();

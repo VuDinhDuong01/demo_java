@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -42,9 +38,8 @@ import com.example.demo.exceptions.ForbiddenException;
 import com.example.demo.exceptions.NotFoundException;
 import com.example.demo.repositorys.AuthRepository;
 import com.example.demo.repositorys.RoleRepository;
-import com.example.demo.utils.ImplementAuth;
-import com.example.demo.utils.TokenType;
 import com.example.demo.utils.Utils;
+import com.example.demo.utils.Enum.TokenType;
 
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -57,7 +52,7 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class AuthService implements ImplementAuth{
+public class AuthService {
     @Value("${spring.jwt.secretKey_access_token}")
     private String secretKey_access_token;
 
@@ -77,23 +72,6 @@ public class AuthService implements ImplementAuth{
     @Autowired
     JwtService jwtService;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        AuthEntity user = authRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("user không tồn tại"));
-        List<String> roles = new ArrayList<>();
-        roles.add(user.getRole());
-        List<SimpleGrantedAuthority> grantedAuthorities = roles.stream()
-                .map(authority -> new SimpleGrantedAuthority(authority)).collect(Collectors.toList());
-
-        return new org.springframework.security.core.userdetails.User(user.getUsername(),
-                user.getPassword(), grantedAuthorities);
-    }
-    // public UserDetailsService userDetailsService() {
-    // return username -> authRepository.findByUsername(username)
-    // .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    // }
-
     public AuthResponse.RegisterResponse register(RegisterRequest body) {
         AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
         if (findEmailExsist != null) {
@@ -108,14 +86,14 @@ public class AuthService implements ImplementAuth{
         Map<String, Object> p = new HashMap<>();
         p.put("send-token", token);
         context.setVariables(p);
-        
+
         // try {
         // emailService.sendEmail(body.getEmail(), subject, html, context);
         // } catch (MessagingException e) {
         // System.out.println("error send mail");
         // e.printStackTrace();
         // }
-        kafkaTemplate.send("confirm-acount-topic","duong2lophot@gmail.com");
+        kafkaTemplate.send("confirm-acount-topic", "duong2lophot@gmail.com");
 
         String id = UUID.randomUUID().toString();
 
@@ -123,7 +101,7 @@ public class AuthService implements ImplementAuth{
 
         AuthEntity authEntity = new AuthEntity();
         authEntity.setEmail(body.getEmail());
-        authEntity.setVerify_email(token);
+        authEntity.setVerifyEmail(token);
         authEntity.setPassword(hashedPassword);
         authEntity.setUsername(body.getUsername());
         authEntity.setId(id);
@@ -137,14 +115,14 @@ public class AuthService implements ImplementAuth{
     public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
         AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
         boolean checkVerify = Utils.checkVerifyTimer((java.sql.Date) findEmailUser.getCreatedAt());
-        if (findEmailUser.getVerify_email() != payload.getToken()) {
+        if (findEmailUser.getVerifyEmail() != payload.getToken()) {
             throw new ForbiddenException("Token của bạn không đúng");
         }
         if (!checkVerify) {
             throw new ForbiddenException("Token của bạn đã hết hạn");
         }
         AuthEntity authEntity = new AuthEntity();
-        authEntity.setVerify_email("");
+        authEntity.setVerifyEmail("");
         authEntity.setVerify(1);
 
         authRepository.save(authEntity);
@@ -159,7 +137,7 @@ public class AuthService implements ImplementAuth{
             throw new NotFoundException("user not exsist");
         }
 
-        String checkVerify = findEmailUser.getVerify_email();
+        String checkVerify = findEmailUser.getVerifyEmail();
 
         // if (!checkVerify.equals("")) {
         // throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
@@ -264,10 +242,10 @@ public class AuthService implements ImplementAuth{
         field.put("field", token);
         context.setVariables(field);
         // try {
-        //     emailService.sendEmail(payload.getEmail(), subject, html, context);
+        // emailService.sendEmail(payload.getEmail(), subject, html, context);
         // } catch (MessagingException e) {
-        //     System.out.println("error send mail");
-        //     e.printStackTrace();
+        // System.out.println("error send mail");
+        // e.printStackTrace();
         // }
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
         AuthEntity authEntity = new AuthEntity();
