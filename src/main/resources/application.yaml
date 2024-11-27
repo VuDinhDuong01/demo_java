@@ -27,5 +27,6 @@ spring:
     bucket_name: upload-file
   kafka:
     bootstrap-servers: localhost:29092
+  
 server:
   port: 5000

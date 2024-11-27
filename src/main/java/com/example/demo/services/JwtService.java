@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.AuthEntity;
-import com.example.demo.utils.TokenType;
+import com.example.demo.utils.Enum.TokenType;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

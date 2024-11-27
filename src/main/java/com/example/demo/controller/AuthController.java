@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -116,20 +118,28 @@ public class AuthController {
         return baseResponse;
     }
 
-    // @PostMapping(path = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    // public BaseResponse<List<Map<String, String>>> uploadFile(
-    //         @RequestPart(value = "file", required = true) List<MultipartFile> files) {
-    //     // List<Map<String, String>> response = minioService.uploadFile(files);
+    @PostMapping("/oauth/google")
+    public String loginGoogle(@AuthenticationPrincipal OAuth2User user) {
+        System.out.println("user" + user);
+        return "well come";
+    }
 
-    //     return BaseResponse.<List<Map<String, String>>>builder().result(response).build();
+    // @PostMapping(path = "/upload", consumes = {
+    // MediaType.MULTIPART_FORM_DATA_VALUE })
+    // public BaseResponse<List<Map<String, String>>> uploadFile(
+    // @RequestPart(value = "file", required = true) List<MultipartFile> files) {
+    // // List<Map<String, String>> response = minioService.uploadFile(files);
+
+    // return BaseResponse.<List<Map<String,
+    // String>>>builder().result(response).build();
 
     // }
 
     // @GetMapping(path = "/get-signature")
     // public BaseResponse<List<String>> getUrls() {
-    //     String userid = Utils.getUserId();
-    //     // List<String> response = minioService.getUrl(userid);
-    //     return BaseResponse.<List<String>>builder().result(response).build();
+    // String userid = Utils.getUserId();
+    // // List<String> response = minioService.getUrl(userid);
+    // return BaseResponse.<List<String>>builder().result(response).build();
     // }
 
 }
