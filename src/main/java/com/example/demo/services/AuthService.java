@@ -178,11 +178,11 @@ public class AuthService {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
 
         Specification<AuthEntity> spec = (root, query, criteriaBuilder) -> {
-
+            
             List<String> date = new ArrayList<>();
             date.add("createdAt");
             date.add("updateAt");
-
+            predicates.add(criteriaBuilder.notEqual(root.get("isDelete"), true));
             for (ConditionRequest condition : payload.getConditions()) {
                 Path<String> field = root.get(condition.getKey());
                 List<String> value = condition.getValue();
@@ -201,9 +201,8 @@ public class AuthService {
                 } else if ("status".equals(condition.getKey())) {
                     System.out.println("status:");
                 }
-                predicates.add(field.in(value));
+                predicates.add(criteriaBuilder.like(field, "%" + value.get(0).trim() + "%"));
             }
-
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 

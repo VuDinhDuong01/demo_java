@@ -23,13 +23,15 @@ public class AuthEntity extends BaseEntity {
     @Id
     String id;
 
+    @Column(name = "username" , nullable = false)
     String username;
 
     @JsonIgnore
     @Column(name = "password", nullable = false)
     String password;
 
-    @Column(name = "email", unique = true, nullable = false)
+    
+    @Column(name = "email", unique = true, nullable = false, columnDefinition = "VARCHAR(500) ")
     String email;
     
     String avatar;
@@ -51,6 +53,9 @@ public class AuthEntity extends BaseEntity {
 
     @Column(name = "auth_provider")
     String authProvider;
+
+    @Column(name = "is_delete")
+    Boolean isDelete = false;
 
     @ManyToOne
     RoleEntity permissions;
