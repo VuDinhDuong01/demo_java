@@ -4,11 +4,13 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-
     ports:
       - "3306:3306"
     volumes:
       - dataVolumes:/var/lib/mysql
+    networks:
+      - connect
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
@@ -17,6 +19,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - '22181:2181'
+    networks:
+      - connect
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -32,6 +36,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - connect
   # minio:
   #   image: minio/minio
   #   container_name: minio
@@ -46,3 +52,5 @@ services:
   #   command: server --console-address ":9001" /data
 volumes:
   dataVolumes:
+networks:
+  connect:
