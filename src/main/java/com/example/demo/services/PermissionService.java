@@ -95,7 +95,7 @@ public class PermissionService {
         dateField.add("createdAt");
         dateField.add("updatedAt");
         Specification<PermissionEntity> spec = (root, query, criteriaBuilder) -> {
-
+            predicates.add(criteriaBuilder.notEqual(root.get("isDelete"), true));
             for (ConditionRequest cond : payload.getConditions()) {
                 Path<String> key = root.get(cond.getKey());
                 List<String> condition = cond.getValue();
