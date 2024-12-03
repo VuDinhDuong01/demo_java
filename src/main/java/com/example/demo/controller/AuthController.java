@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -122,6 +123,12 @@ public class AuthController {
     public String loginGoogle(@AuthenticationPrincipal OAuth2User user) {
         System.out.println("user" + user);
         return "well come";
+    }
+
+
+    @PostMapping("/import-user")
+    public BaseResponse<?> importUser(@RequestParam("file") MultipartFile file){
+        return "";
     }
 
     // @PostMapping(path = "/upload", consumes = {
