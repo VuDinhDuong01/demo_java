@@ -51,9 +51,11 @@ public class AuthEntity extends BaseEntity {
 
     String role;
 
+    @JsonIgnore
     @Column(name = "auth_provider")
     String authProvider;
 
+   
     @Column(name = "is_delete")
     Boolean isDelete = false;
 

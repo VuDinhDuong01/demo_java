@@ -149,7 +149,7 @@ public class AuthService {
         if (!hashedPassword) {
             throw new ForbiddenException("password not match.");
         }
-        String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 3600000);
+        String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 24*60*60*60*1000);
         String refresh_token = jwtService.generateToken(TokenType.REFRESH_TOKEN, findEmailUser, 360000);
 
         Token token = new Token();
