@@ -1,15 +1,23 @@
 package com.example.demo.services;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -20,6 +28,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 
 import com.example.demo.dtos.requests.ConditionRequest;
@@ -54,237 +63,279 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class AuthService {
-    @Value("${spring.jwt.secretKey_access_token}")
-    private String secretKey_access_token;
+  @Value("${spring.jwt.secretKey_access_token}")
+  private String secretKey_access_token;
 
-    @Value("${spring.jwt.secretKey_refresh_token}")
-    String secretKey_refresh_token;
+  @Value("${spring.jwt.secretKey_refresh_token}")
+  String secretKey_refresh_token;
 
-    @Autowired
-    EmailService emailService;
-    @Autowired
-    AuthRepository authRepository;
-    @Autowired
-    RoleRepository roleRepository;
-    @Autowired
-    PasswordEncoder passwordEncoder;
-    @Autowired
-    KafkaTemplate kafkaTemplate;
-    @Autowired
-    JwtService jwtService;
+  @Autowired
+  EmailService emailService;
+  @Autowired
+  AuthRepository authRepository;
+  @Autowired
+  RoleRepository roleRepository;
+  @Autowired
+  PasswordEncoder passwordEncoder;
+  @Autowired
+  KafkaTemplate kafkaTemplate;
+  @Autowired
+  JwtService jwtService;
 
-    public AuthResponse.RegisterResponse register(RegisterRequest body) {
-        AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
-        if (findEmailExsist != null) {
-            System.out.println("user not found:");
-            throw new ForbiddenException("Tài khoản user đã tồn tại.");
-        }
-        String subject = "Token của bạn.";
-        Context context = new Context();
-        String html = "confirm-email.html";
-        String token = Utils.randomToken();
-        System.out.println("token:" + token);
-        Map<String, Object> p = new HashMap<>();
-        p.put("send-token", token);
-        context.setVariables(p);
+  public AuthResponse.RegisterResponse register(RegisterRequest body) {
+    AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
+    if (findEmailExsist != null) {
+      System.out.println("user not found:");
+      throw new ForbiddenException("Tài khoản user đã tồn tại.");
+    }
+    String subject = "Token của bạn.";
+    Context context = new Context();
+    String html = "confirm-email.html";
+    String token = Utils.randomToken();
+    System.out.println("token:" + token);
+    Map<String, Object> p = new HashMap<>();
+    p.put("send-token", token);
+    context.setVariables(p);
 
-        // try {
-        // emailService.sendEmail(body.getEmail(), subject, html, context);
-        // } catch (MessagingException e) {
-        // System.out.println("error send mail");
-        // e.printStackTrace();
-        // }
-        kafkaTemplate.send("confirm-acount-topic", "duong2lophot@gmail.com");
+    // try {
+    // emailService.sendEmail(body.getEmail(), subject, html, context);
+    // } catch (MessagingException e) {
+    // System.out.println("error send mail");
+    // e.printStackTrace();
+    // }
+    kafkaTemplate.send("confirm-acount-topic", "duong2lophot@gmail.com");
 
-        String id = UUID.randomUUID().toString();
+    String id = UUID.randomUUID().toString();
 
-        String hashedPassword = passwordEncoder.encode(body.getPassword());
+    String hashedPassword = passwordEncoder.encode(body.getPassword());
 
-        AuthEntity authEntity = new AuthEntity();
-        authEntity.setRole(RoleType.USER.name());
-        authEntity.setEmail(body.getEmail());
-        authEntity.setVerifyEmail(token);
-        authEntity.setAuthProvider("");
-        authEntity.setPassword(hashedPassword);
-        authEntity.setUsername(body.getUsername());
-        authEntity.setId(id);
-        authEntity.setCreatedBy(id);
-        authRepository.save(authEntity);
-        AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().id(id).build();
-        return registerResponse;
+    AuthEntity authEntity = new AuthEntity();
+    authEntity.setRole(RoleType.USER.name());
+    authEntity.setEmail(body.getEmail());
+    authEntity.setVerifyEmail(token);
+    authEntity.setAuthProvider("");
+    authEntity.setPassword(hashedPassword);
+    authEntity.setUsername(body.getUsername());
+    authEntity.setId(id);
+    authEntity.setCreatedBy(id);
+    authRepository.save(authEntity);
+    AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().id(id).build();
+    return registerResponse;
+  }
+
+  public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
+    AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
+    boolean checkVerify = Utils.checkVerifyTimer((java.sql.Date) findEmailUser.getCreatedAt());
+    if (findEmailUser.getVerifyEmail() != payload.getToken()) {
+      throw new ForbiddenException("Token của bạn không đúng");
+    }
+    if (!checkVerify) {
+      throw new ForbiddenException("Token của bạn đã hết hạn");
+    }
+    AuthEntity authEntity = new AuthEntity();
+    authEntity.setVerifyEmail("");
+    authEntity.setVerify(1);
+
+    authRepository.save(authEntity);
+    return "verify email success";
+  }
+
+  public AuthResponse.LoginResponse login(LoginRequest payload) {
+
+    AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
+
+    if (findEmailUser == null) {
+      throw new NotFoundException("user not exsist");
     }
 
-    public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
-        AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
-        boolean checkVerify = Utils.checkVerifyTimer((java.sql.Date) findEmailUser.getCreatedAt());
-        if (findEmailUser.getVerifyEmail() != payload.getToken()) {
-            throw new ForbiddenException("Token của bạn không đúng");
-        }
-        if (!checkVerify) {
-            throw new ForbiddenException("Token của bạn đã hết hạn");
-        }
-        AuthEntity authEntity = new AuthEntity();
-        authEntity.setVerifyEmail("");
-        authEntity.setVerify(1);
+    String checkVerify = findEmailUser.getVerifyEmail();
 
-        authRepository.save(authEntity);
-        return "verify email success";
+    // if (!checkVerify.equals("")) {
+    // throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
+    // }
+
+    Boolean hashedPassword = passwordEncoder.matches(payload.getPassword(), findEmailUser.getPassword());
+    if (!hashedPassword) {
+      throw new ForbiddenException("password not match.");
     }
+    String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 24 * 60 * 60 * 60 * 1000);
+    String refresh_token = jwtService.generateToken(TokenType.REFRESH_TOKEN, findEmailUser, 360000);
 
-    public AuthResponse.LoginResponse login(LoginRequest payload) {
+    Token token = new Token();
+    token.setAccess_token(access_token);
+    token.setRefresh_token(refresh_token);
 
-        AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
+    RoleEntity getRoleDefault = roleRepository.findByName("USER");
+    findEmailUser.setPermissions(getRoleDefault);
+    findEmailUser.setRole(findEmailUser.getRole() == null ? "USER" : findEmailUser.getRole());
+    AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
+        .build();
 
-        if (findEmailUser == null) {
-            throw new NotFoundException("user not exsist");
-        }
+    return loginResponse;
+  }
 
-        String checkVerify = findEmailUser.getVerifyEmail();
+  public Map<String, Object> userFilter(GetAllRequest payload) {
+    int page = payload.getStart() != null ? Integer.parseInt(payload.getStart()) : 0;
+    int limit = payload.getLimit() != null ? Integer.parseInt(payload.getLimit()) : 10;
 
-        // if (!checkVerify.equals("")) {
-        // throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
-        // }
+    String sortField = payload.getSortField() != null ? payload.getSortField() : "createdAt";
+    String sortType = payload.getSortType() != null ? payload.getSortType() : "asc";
 
-        Boolean hashedPassword = passwordEncoder.matches(payload.getPassword(), findEmailUser.getPassword());
-        if (!hashedPassword) {
-            throw new ForbiddenException("password not match.");
-        }
-        String access_token = jwtService.generateToken(TokenType.ACCESS_TOKEN, findEmailUser, 24*60*60*60*1000);
-        String refresh_token = jwtService.generateToken(TokenType.REFRESH_TOKEN, findEmailUser, 360000);
+    Sort sort = sort(sortField, sortType);
+    Pageable paging = PageRequest.of(page, limit, sort);
+    List<Predicate> predicates = new ArrayList<>();
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
 
-        Token token = new Token();
-        token.setAccess_token(access_token);
-        token.setRefresh_token(refresh_token);
+    Specification<AuthEntity> spec = (root, query, criteriaBuilder) -> {
 
-        RoleEntity getRoleDefault = roleRepository.findByName("USER");
-        findEmailUser.setPermissions(getRoleDefault);
-        findEmailUser.setRole(findEmailUser.getRole() == null ? "USER" : findEmailUser.getRole());
-        AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder().data(findEmailUser).token(token)
-                .build();
-
-        return loginResponse;
-    }
-
-    public Map<String, Object> userFilter(GetAllRequest payload) {
-        int page = payload.getStart() != null ? Integer.parseInt(payload.getStart()) : 0;
-        int limit = payload.getLimit() != null ? Integer.parseInt(payload.getLimit()) : 10;
-
-        String sortField = payload.getSortField() != null ? payload.getSortField() : "createdAt";
-        String sortType = payload.getSortType() != null ? payload.getSortType() : "asc";
-
-        Sort sort = sort(sortField, sortType);
-        Pageable paging = PageRequest.of(page, limit, sort);
-        List<Predicate> predicates = new ArrayList<>();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
-
-        Specification<AuthEntity> spec = (root, query, criteriaBuilder) -> {
-            
-            List<String> date = new ArrayList<>();
-            date.add("createdAt");
-            date.add("updateAt");
-            predicates.add(criteriaBuilder.notEqual(root.get("isDelete"), true));
-            for (ConditionRequest condition : payload.getConditions()) {
-                Path<String> field = root.get(condition.getKey());
-                List<String> value = condition.getValue();
-                if (date.contains(condition.getKey())) {
-                    if (value.size() >= 2) {
-                        try {
-                            if (value.size() >= 2) {
-                                Date startDate = simpleDateFormat.parse(value.get(0));
-                                Date endDate = simpleDateFormat.parse(value.get(1));
-                                predicates.add(criteriaBuilder.between(field.as(Date.class), startDate, endDate));
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else if ("status".equals(condition.getKey())) {
-                    System.out.println("status:");
-                }
-                predicates.add(criteriaBuilder.like(field, "%" + value.get(0).trim() + "%"));
+      List<String> date = new ArrayList<>();
+      date.add("createdAt");
+      date.add("updateAt");
+      predicates.add(criteriaBuilder.notEqual(root.get("isDelete"), true));
+      for (ConditionRequest condition : payload.getConditions()) {
+        Path<String> field = root.get(condition.getKey());
+        List<String> value = condition.getValue();
+        if (date.contains(condition.getKey())) {
+          if (value.size() >= 2) {
+            try {
+              if (value.size() >= 2) {
+                Date startDate = simpleDateFormat.parse(value.get(0));
+                Date endDate = simpleDateFormat.parse(value.get(1));
+                predicates.add(criteriaBuilder.between(field.as(Date.class), startDate, endDate));
+              }
+            } catch (ParseException e) {
+              e.printStackTrace();
             }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-
-        Page<AuthEntity> result = authRepository.findAll(spec, paging);
-        List<Object> contents = new ArrayList();
-        Map<String, Object> mapResult = new HashMap<>();
-        contents.add(result.getContent());
-        mapResult.put("results", result.getContent().size() > 0 ? contents : new ArrayList());
-        mapResult.put("current", result.getPageable().getPageNumber());
-        mapResult.put("totalPage", result.getTotalPages());
-        mapResult.put("totalElement", result.getTotalElements());
-        return mapResult;
-    }
-
-    private Sort sort(String sortField, String sortType) {
-        return sortType.equals("asc") ? Sort.by(Sort.Direction.ASC, sortField)
-                : Sort.by(Sort.Direction.DESC, sortField);
-    }
-
-    public AuthEntity updateUser(UpdateUserRequest payload) {
-
-        AuthEntity findUserUpdate = authRepository.findById(payload.getUserIdUpdate()).orElse(null);
-        if (findUserUpdate == null) {
-            throw new NotFoundException("Không tìm thấy user.");
+          }
+        } else if ("status".equals(condition.getKey())) {
+          System.out.println("status:");
         }
-        findUserUpdate.setUsername(payload.getUsername());
-        findUserUpdate.setUpdatedAt(new Date());
-        authRepository.save(findUserUpdate);
-        return findUserUpdate;
+        predicates.add(criteriaBuilder.like(field, "%" + value.get(0).trim() + "%"));
+      }
+      return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+    };
+
+    Page<AuthEntity> result = authRepository.findAll(spec, paging);
+    List<Object> contents = new ArrayList();
+    Map<String, Object> mapResult = new HashMap<>();
+    contents.add(result.getContent());
+    mapResult.put("results", result.getContent().size() > 0 ? contents : new ArrayList());
+    mapResult.put("current", result.getPageable().getPageNumber());
+    mapResult.put("totalPage", result.getTotalPages());
+    mapResult.put("totalElement", result.getTotalElements());
+    return mapResult;
+  }
+
+  private Sort sort(String sortField, String sortType) {
+    return sortType.equals("asc") ? Sort.by(Sort.Direction.ASC, sortField)
+        : Sort.by(Sort.Direction.DESC, sortField);
+  }
+
+  public AuthEntity updateUser(UpdateUserRequest payload) {
+
+    AuthEntity findUserUpdate = authRepository.findById(payload.getUserIdUpdate()).orElse(null);
+    if (findUserUpdate == null) {
+      throw new NotFoundException("Không tìm thấy user.");
+    }
+    findUserUpdate.setUsername(payload.getUsername());
+    findUserUpdate.setUpdatedAt(new Date());
+    authRepository.save(findUserUpdate);
+    return findUserUpdate;
+  }
+
+  public ForgotPasswordRequest forgotPassword(ForgotPasswordRequest payload) {
+    String subject = "Testing send mail reset password";
+    String token = Utils.randomToken();
+    String html = "send-mail-reset-password.html";
+    Context context = new Context();
+    Map<String, Object> field = new HashMap<>();
+    field.put("field", token);
+    context.setVariables(field);
+    // try {
+    // emailService.sendEmail(payload.getEmail(), subject, html, context);
+    // } catch (MessagingException e) {
+    // System.out.println("error send mail");
+    // e.printStackTrace();
+    // }
+    ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
+    AuthEntity authEntity = new AuthEntity();
+    authEntity.setForgotPassword(subject);
+    forgotPasswordRequest.setEmail(payload.getEmail());
+    authRepository.save(authEntity);
+    return forgotPasswordRequest;
+  }
+
+  public ForgotPasswordRequest verifyForgotPassword(VerifyTokenForgotPasswordRequest payload) {
+    AuthEntity user = authRepository.findByEmail(payload.getEmail());
+    if (user == null) {
+      throw new NotFoundException("Tài khoản không tồn tại.");
     }
 
-    public ForgotPasswordRequest forgotPassword(ForgotPasswordRequest payload) {
-        String subject = "Testing send mail reset password";
-        String token = Utils.randomToken();
-        String html = "send-mail-reset-password.html";
-        Context context = new Context();
-        Map<String, Object> field = new HashMap<>();
-        field.put("field", token);
-        context.setVariables(field);
-        // try {
-        // emailService.sendEmail(payload.getEmail(), subject, html, context);
-        // } catch (MessagingException e) {
-        // System.out.println("error send mail");
-        // e.printStackTrace();
-        // }
-        ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
-        AuthEntity authEntity = new AuthEntity();
-        authEntity.setForgotPassword(subject);
-        forgotPasswordRequest.setEmail(payload.getEmail());
-        authRepository.save(authEntity);
-        return forgotPasswordRequest;
+    if (user.getForgotPassword() != payload.getToken()) {
+      throw new ForbiddenException("Mã xác thực không đúng");
     }
 
-    public ForgotPasswordRequest verifyForgotPassword(VerifyTokenForgotPasswordRequest payload) {
-        AuthEntity user = authRepository.findByEmail(payload.getEmail());
-        if (user == null) {
-            throw new NotFoundException("Tài khoản không tồn tại.");
-        }
+    ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
+    forgotPasswordRequest.setEmail(payload.getEmail());
+    AuthEntity authEntity = new AuthEntity();
+    authEntity.setForgotPassword("");
+    return forgotPasswordRequest;
+  }
 
-        if (user.getForgotPassword() != payload.getToken()) {
-            throw new ForbiddenException("Mã xác thực không đúng");
-        }
-
-        ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
-        forgotPasswordRequest.setEmail(payload.getEmail());
-        AuthEntity authEntity = new AuthEntity();
-        authEntity.setForgotPassword("");
-        return forgotPasswordRequest;
+  public String resetPassword(ResetPasswordRequest payload) {
+    AuthEntity user = authRepository.findByEmail(payload.getEmail());
+    if (user == null) {
+      throw new NotFoundException("Tài khoản không tồn tại.");
     }
 
-    public String resetPassword(ResetPasswordRequest payload) {
-        AuthEntity user = authRepository.findByEmail(payload.getEmail());
-        if (user == null) {
-            throw new NotFoundException("Tài khoản không tồn tại.");
-        }
+    AuthEntity authEntity = new AuthEntity();
+    authEntity.setPassword(payload.getNewPassword());
+    authRepository.save(authEntity);
 
-        AuthEntity authEntity = new AuthEntity();
-        authEntity.setPassword(payload.getNewPassword());
-        authRepository.save(authEntity);
+    return "reset password success";
+  }
 
-        return "reset password success";
+  public Object importUser(MultipartFile file) {
+
+    try {
+      InputStream inputStreamFile = file.getInputStream();
+      Workbook workbook = new XSSFWorkbook(inputStreamFile);
+      Sheet sheet = workbook.getSheetAt(0);
+      Row excelHeader = sheet.getRow(0);
+      Map<Integer, String> headerMapValue = new HashMap<>();
+    for (int i = 0; i < excelHeader.getLastCellNum(); i++) {
+      if (excelHeader.getCell(i).getCellType() == CellType.NUMERIC) {
+        continue;
+      }
+      headerMapValue.put(excelHeader.getCell(i).getRowIndex(), excelHeader.getCell(i).getStringCellValue());
     }
 
-    public 
+      if (!checkFieldHeader(excelHeader,headerMapValue)) {
+        throw new ForbiddenException("Bạn chưa nhập đủ các trường.");
+      }
+
+      String indexUsername= headerMapValue.get("username");
+      System.out.println("indexUsername: " + indexUsername);
+
+      for(int i  = 1 ;i <= sheet.getLastRowNum();i++){
+        Row row = sheet.getRow(i);
+      }
+      workbook.close();
+
+      // return "";
+
+    } catch (IOException e) {
+      throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
+    }
+    return null;
+  }
+
+  private Boolean checkFieldHeader(Row excelHeader, Map<Integer, String> headerMapValue) {
+    
+    Set<String> HeaderTitle = new HashSet<>();
+    HeaderTitle.add("Vai trò");
+    HeaderTitle.add("Tên");
+    return headerValue.equals(HeaderTitle);
+  }
+
 }

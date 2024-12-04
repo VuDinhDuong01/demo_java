@@ -127,8 +127,10 @@ public class AuthController {
 
 
     @PostMapping("/import-user")
-    public BaseResponse<?> importUser(@RequestParam("file") MultipartFile file){
-        return "";
+    public BaseResponse<Object> importUser(@RequestParam("file") MultipartFile file){
+        Object response = authService.importUser(file);
+       BaseResponse<Object> result = BaseResponse.<Object>builder().result(response).build();
+       return result;
     }
 
     // @PostMapping(path = "/upload", consumes = {
@@ -150,3 +152,4 @@ public class AuthController {
     // }
 
 }
+
