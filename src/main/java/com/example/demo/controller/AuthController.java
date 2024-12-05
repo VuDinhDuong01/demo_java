@@ -1,5 +1,8 @@
 package com.example.demo.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dtos.requests.ExportRequest;
 import com.example.demo.dtos.requests.ForgotPasswordRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
 import com.example.demo.dtos.requests.LoginRequest;
@@ -31,6 +35,7 @@ import com.example.demo.services.AuthService;
 // import com.example.demo.services.MinioService;
 import com.example.demo.utils.Utils;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -125,12 +130,25 @@ public class AuthController {
         return "well come";
     }
 
-
     @PostMapping("/import-user")
-    public BaseResponse<Object> importUser(@RequestParam("file") MultipartFile file){
-        Object response = authService.importUser(file);
-       BaseResponse<Object> result = BaseResponse.<Object>builder().result(response).build();
-       return result;
+    public BaseResponse<AuthResponse.ImportUserResponse> importUser(@RequestParam("file") MultipartFile file) {
+        AuthResponse.ImportUserResponse response = authService.importUser(file);
+        BaseResponse<AuthResponse.ImportUserResponse> result = BaseResponse.<AuthResponse.ImportUserResponse>builder()
+                .result(response).build();
+        return result;
+    }
+
+    @PostMapping("/export-user-excel")
+    public void exportUser(@RequestBody @Valid ExportRequest body, HttpServletResponse response) {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=student" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+        authService.generateExcelFile(body, response);
+
     }
 
     // @PostMapping(path = "/upload", consumes = {
@@ -152,4 +170,3 @@ public class AuthController {
     // }
 
 }
-

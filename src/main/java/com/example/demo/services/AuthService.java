@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -13,10 +14,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 
 import com.example.demo.dtos.requests.ConditionRequest;
+import com.example.demo.dtos.requests.ExportRequest;
 import com.example.demo.dtos.requests.ForgotPasswordRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
 import com.example.demo.dtos.requests.LoginRequest;
@@ -55,6 +61,8 @@ import com.example.demo.utils.validator.ValidateImportUser;
 
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -83,6 +91,12 @@ public class AuthService {
   KafkaTemplate kafkaTemplate;
   @Autowired
   JwtService jwtService;
+
+  @Autowired
+  XSSFWorkbook workbook;
+
+  @Autowired
+  XSSFSheet sheet;
 
   public AuthResponse.RegisterResponse register(RegisterRequest body) {
     AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
@@ -326,9 +340,8 @@ public class AuthService {
         ImportUser importUser = new ImportUser();
         Row row = sheet.getRow(i);
 
-        String username = row.getCell(indexUsername) != null ? row.getCell(indexUsername).getStringCellValue(): null;
-        String role = row.getCell(indexRole) != null ?  row.getCell(indexRole).getStringCellValue(): null;
-
+        String username = row.getCell(indexUsername) != null ? row.getCell(indexUsername).getStringCellValue() : null;
+        String role = row.getCell(indexRole) != null ? row.getCell(indexRole).getStringCellValue() : null;
 
         importUser.setUsername(username);
         importUser.setRole(role);
@@ -339,7 +352,7 @@ public class AuthService {
           error.add(importUser);
           continue;
         }
-        
+
         importUser.setListError(null);
         success.add(importUser);
       }
@@ -363,5 +376,64 @@ public class AuthService {
     HeaderTitle.add("Vai trò");
     HeaderTitle.add("Tên");
     return headerMapValue.keySet().containsAll(HeaderTitle);
+  }
+
+  private void writeHeader() {
+    Row row = sheet.createRow(0);
+    CellStyle style = workbook.createCellStyle();
+    XSSFFont font = workbook.createFont();
+    font.setBold(true);
+    font.setFontHeight(16);
+
+    createCell(row, 0, "ID", style);
+    createCell(row, 1, "username", style);
+    createCell(row, 2, "email", style);
+    createCell(row, 3, "role", style);
+
+  }
+
+  private void createCell(Row row, int columnCount, Object valueOfCell, CellStyle style) {
+    sheet.autoSizeColumn(columnCount);
+    Cell cell = row.createCell(columnCount);
+    if (valueOfCell instanceof Integer) {
+      cell.setCellValue((Integer) valueOfCell);
+    } else if (valueOfCell instanceof Long) {
+      cell.setCellValue((Long) valueOfCell);
+    } else if (valueOfCell instanceof String) {
+      cell.setCellValue((String) valueOfCell);
+    } else {
+      cell.setCellValue((Boolean) valueOfCell);
+    }
+    cell.setCellStyle(style);
+  }
+
+  private void write(List<AuthEntity> users) {
+    int rowCount = 1;
+    CellStyle style = workbook.createCellStyle();
+    XSSFFont font = workbook.createFont();
+    font.setBold(true);
+    font.setFontHeight(14);
+    style.setFont(font);
+
+    for (AuthEntity user : users) {
+      Row row = sheet.createRow(rowCount++);
+      int columnCount = 0;
+      createCell(row, columnCount++, user.getId(), style);
+      createCell(row, columnCount++, user.getUsername(), style);
+      createCell(row, columnCount++, user.getEmail(), style);
+      createCell(row, columnCount++, user.getRole(), style);
+    }
+  }
+
+  public void generateExcelFile(ExportRequest payload, HttpServletResponse response) {
+    List<AuthEntity> users = authRepository.findAuthEntity(payload.getUsername(), payload.getRole());
+    writeHeader();
+    write(users);
+    try (ServletOutputStream outputStream = response.getOutputStream();) {
+      workbook.write(outputStream);
+      workbook.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
