@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Data
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ImportUserResponse {
+public class ImportUser {
     String username;
     String role;
     List<String> listError;

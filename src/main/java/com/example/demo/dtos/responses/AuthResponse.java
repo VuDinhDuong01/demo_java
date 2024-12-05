@@ -28,7 +28,7 @@ public class AuthResponse {
     @Builder
     @Data
     public static class ImportUserResponse {
-        List<ImportUserResponse> success;
-        List<ImportUserResponse> error;
+        List<ImportUser> success;
+        List<ImportUser> error;
     }
 }

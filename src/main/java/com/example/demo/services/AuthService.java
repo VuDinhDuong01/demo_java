@@ -40,6 +40,7 @@ import com.example.demo.dtos.requests.ResetPasswordRequest;
 import com.example.demo.dtos.requests.UpdateUserRequest;
 import com.example.demo.dtos.requests.VerifyTokenForgotPasswordRequest;
 import com.example.demo.dtos.responses.AuthResponse;
+import com.example.demo.dtos.responses.ImportUser;
 import com.example.demo.dtos.responses.Token;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.entity.RoleEntity;
@@ -50,6 +51,7 @@ import com.example.demo.repositorys.RoleRepository;
 import com.example.demo.utils.Utils;
 import com.example.demo.utils.Enum.RoleType;
 import com.example.demo.utils.Enum.TokenType;
+import com.example.demo.utils.validator.ValidateImportUser;
 
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -295,47 +297,71 @@ public class AuthService {
     return "reset password success";
   }
 
-  public Object importUser(MultipartFile file) {
+  public AuthResponse.ImportUserResponse importUser(MultipartFile file) {
 
     try {
       InputStream inputStreamFile = file.getInputStream();
       Workbook workbook = new XSSFWorkbook(inputStreamFile);
       Sheet sheet = workbook.getSheetAt(0);
       Row excelHeader = sheet.getRow(0);
-      Map<Integer, String> headerMapValue = new HashMap<>();
-    for (int i = 0; i < excelHeader.getLastCellNum(); i++) {
-      if (excelHeader.getCell(i).getCellType() == CellType.NUMERIC) {
-        continue;
-      }
-      headerMapValue.put(excelHeader.getCell(i).getRowIndex(), excelHeader.getCell(i).getStringCellValue());
-    }
+      Map<String, Integer> headerMapValue = new HashMap<>();
+      List<ImportUser> success = new ArrayList<>();
+      List<ImportUser> error = new ArrayList<>();
 
-      if (!checkFieldHeader(excelHeader,headerMapValue)) {
+      for (int i = 0; i < excelHeader.getLastCellNum(); i++) {
+        if (excelHeader.getCell(i).getCellType() == CellType.NUMERIC) {
+          continue;
+        }
+        headerMapValue.put(excelHeader.getCell(i).getStringCellValue(), excelHeader.getCell(i).getColumnIndex());
+      }
+
+      if (!checkFieldHeader(excelHeader, headerMapValue)) {
         throw new ForbiddenException("Bạn chưa nhập đủ các trường.");
       }
 
-      String indexUsername= headerMapValue.get("username");
-      System.out.println("indexUsername: " + indexUsername);
+      Integer indexUsername = headerMapValue.get("Tên");
+      Integer indexRole = headerMapValue.get("Vai trò");
 
-      for(int i  = 1 ;i <= sheet.getLastRowNum();i++){
+      for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+        ImportUser importUser = new ImportUser();
         Row row = sheet.getRow(i);
-      }
-      workbook.close();
 
-      // return "";
+        String username = row.getCell(indexUsername) != null ? row.getCell(indexUsername).getStringCellValue(): null;
+        String role = row.getCell(indexRole) != null ?  row.getCell(indexRole).getStringCellValue(): null;
+
+
+        importUser.setUsername(username);
+        importUser.setRole(role);
+
+        List<String> validateRow = ValidateImportUser.validateRow(row, headerMapValue);
+        if (validateRow.size() > 0) {
+          importUser.setListError(validateRow);
+          error.add(importUser);
+          continue;
+        }
+        
+        importUser.setListError(null);
+        success.add(importUser);
+      }
+
+      AuthResponse.ImportUserResponse response = AuthResponse.ImportUserResponse
+          .builder()
+          .success(success)
+          .error(error)
+          .build();
+
+      workbook.close();
+      return response;
 
     } catch (IOException e) {
       throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
     }
-    return null;
   }
 
-  private Boolean checkFieldHeader(Row excelHeader, Map<Integer, String> headerMapValue) {
-    
+  private Boolean checkFieldHeader(Row excelHeader, Map<String, Integer> headerMapValue) {
     Set<String> HeaderTitle = new HashSet<>();
     HeaderTitle.add("Vai trò");
     HeaderTitle.add("Tên");
-    return headerValue.equals(HeaderTitle);
+    return headerMapValue.keySet().containsAll(HeaderTitle);
   }
-
 }
