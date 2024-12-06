@@ -3,20 +3,17 @@ package com.example.demo.controller;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,8 +29,6 @@ import com.example.demo.dtos.responses.AuthResponse;
 import com.example.demo.dtos.responses.BaseResponse;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.services.AuthService;
-// import com.example.demo.services.MinioService;
-import com.example.demo.utils.Utils;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -45,6 +40,7 @@ import lombok.experimental.FieldDefaults;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Profile("dev")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
 
@@ -137,7 +133,7 @@ public class AuthController {
                 .result(response).build();
         return result;
     }
-
+    
     @PostMapping("/export-user-excel")
     public void exportUser(@RequestBody @Valid ExportRequest body, HttpServletResponse response) {
         response.setContentType("application/octet-stream");
