@@ -1,7 +1,5 @@
 package com.example.demo.controller;
 
-
-
 import java.util.Map;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,10 +19,6 @@ import com.example.demo.dtos.requests.PermissionRequest;
 import com.example.demo.dtos.responses.BaseResponse;
 
 import com.example.demo.services.PermissionService;
-
-import io.jsonwebtoken.Claims;
-
-import io.jsonwebtoken.Jwts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

@@ -97,6 +97,9 @@ public class AuthService {
   @Autowired
   XSSFSheet sheet;
 
+  @Autowired
+  RedisService redisService;
+
   public AuthResponse.RegisterResponse register(RegisterRequest body) {
     AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
     if (findEmailExsist != null) {
@@ -121,13 +124,13 @@ public class AuthService {
     kafkaTemplate.send("confirm-acount-topic", "duong2lophot@gmail.com");
 
     String id = UUID.randomUUID().toString();
-
     String hashedPassword = passwordEncoder.encode(body.getPassword());
+    // save opt to redis
+    redisService.SaveOTP(body.getEmail() + "_register", token);
 
     AuthEntity authEntity = new AuthEntity();
     authEntity.setRole(RoleType.USER.name());
     authEntity.setEmail(body.getEmail());
-    authEntity.setVerifyEmail(token);
     authEntity.setAuthProvider("");
     authEntity.setPassword(hashedPassword);
     authEntity.setUsername(body.getUsername());
@@ -139,19 +142,22 @@ public class AuthService {
   }
 
   public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
-    AuthEntity findEmailUser = authRepository.findByEmail(payload.getEmail());
-    boolean checkVerify = Utils.checkVerifyTimer((java.sql.Date) findEmailUser.getCreatedAt());
-    if (findEmailUser.getVerifyEmail() != payload.getToken()) {
-      throw new ForbiddenException("Token của bạn không đúng");
-    }
-    if (!checkVerify) {
+
+    // get OTP from redis
+    String getOtpFormRedis = redisService.getOTP(payload.getEmail() + "_register");
+
+    if (getOtpFormRedis == null) {
       throw new ForbiddenException("Token của bạn đã hết hạn");
     }
-    AuthEntity authEntity = new AuthEntity();
-    authEntity.setVerifyEmail("");
-    authEntity.setVerify(1);
 
-    authRepository.save(authEntity);
+    if (getOtpFormRedis != null && getOtpFormRedis != payload.getToken()) {
+      throw new ForbiddenException("Token của bạn không đúng");
+    }
+
+    redisService.deleteOTP(payload.getEmail());
+    AuthEntity authEntity = new AuthEntity();
+    authEntity.setVerify(1);
+    authRepository.save((authEntity));
     return "verify email success";
   }
 
@@ -163,11 +169,9 @@ public class AuthService {
       throw new NotFoundException("user not exsist");
     }
 
-    String checkVerify = findEmailUser.getVerifyEmail();
-
-    // if (!checkVerify.equals("")) {
-    // throw new RuntimeException("Bạn cần xác thực trước khi đăng nhập");
-    // }
+    if (findEmailUser.getVerify() == 0) {
+      throw new NotFoundException("Tài khoản của bạn chưa được xác thực để sử dụng.");
+    }
 
     Boolean hashedPassword = passwordEncoder.matches(payload.getPassword(), findEmailUser.getPassword());
     if (!hashedPassword) {
@@ -274,27 +278,34 @@ public class AuthService {
     // }
     ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
     AuthEntity authEntity = new AuthEntity();
-    authEntity.setForgotPassword(subject);
+
+    // save otp to reids
+    redisService.SaveOTP(payload.getEmail() + "_forgot_password", token);
+
     forgotPasswordRequest.setEmail(payload.getEmail());
     authRepository.save(authEntity);
     return forgotPasswordRequest;
   }
 
-  public ForgotPasswordRequest verifyForgotPassword(VerifyTokenForgotPasswordRequest payload) {
+  public String verifyForgotPassword(VerifyTokenForgotPasswordRequest payload) {
     AuthEntity user = authRepository.findByEmail(payload.getEmail());
     if (user == null) {
       throw new NotFoundException("Tài khoản không tồn tại.");
     }
 
-    if (user.getForgotPassword() != payload.getToken()) {
-      throw new ForbiddenException("Mã xác thực không đúng");
+    // get OTP from Redis
+    String getOtpFormRedis = redisService.getOTP(payload.getEmail() + "_forgot_password");
+
+    if (getOtpFormRedis == null) {
+      throw new ForbiddenException("Token của bạn đã hết hạn");
     }
 
-    ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest();
-    forgotPasswordRequest.setEmail(payload.getEmail());
-    AuthEntity authEntity = new AuthEntity();
-    authEntity.setForgotPassword("");
-    return forgotPasswordRequest;
+    if (getOtpFormRedis != null && getOtpFormRedis != payload.getToken()) {
+      throw new ForbiddenException("Token của bạn không đúng");
+    }
+
+    redisService.deleteOTP(payload.getEmail());
+    return payload.getEmail();
   }
 
   public String resetPassword(ResetPasswordRequest payload) {

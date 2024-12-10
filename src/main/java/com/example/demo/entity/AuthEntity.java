@@ -39,15 +39,7 @@ public class AuthEntity extends BaseEntity {
     @JsonIgnore
     Integer verify = 0;
 
-    @JsonIgnore
-    @Column(name = "verify_email")
-    String verifyEmail;
-
     List<String> signature;
-
-    @JsonIgnore
-    @Column(name="forgot_password")
-    String forgotPassword;
 
     String role;
 

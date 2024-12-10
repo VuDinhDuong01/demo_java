@@ -101,10 +101,10 @@ public class AuthController {
     }
 
     @PutMapping("/verify-token-forgot-password")
-    public BaseResponse<ForgotPasswordRequest> verifyTokenForgotPassword(
+    public BaseResponse<String> verifyTokenForgotPassword(
             @RequestBody VerifyTokenForgotPasswordRequest body) {
-        ForgotPasswordRequest verifyForgotPasswordRequest = authService.verifyForgotPassword(body);
-        BaseResponse<ForgotPasswordRequest> baseResponse = BaseResponse.<ForgotPasswordRequest>builder()
+        String verifyForgotPasswordRequest = authService.verifyForgotPassword(body);
+        BaseResponse<String> baseResponse = BaseResponse.<String>builder()
                 .result(verifyForgotPasswordRequest)
                 .build();
         return baseResponse;
