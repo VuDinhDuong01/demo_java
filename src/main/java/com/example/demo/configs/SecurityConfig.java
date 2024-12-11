@@ -51,8 +51,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(HttpMethod.POST, PUBLIC_ROUTE).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/v1/export-user-excel")
-                                                .permitAll()
+                                                // .requestMatchers(HttpMethod.POST, "/api/v1/branch")
+                                                // .permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
                                                 // .requestMatchers("/api/v1/oauth/**").permitAll()
                                                 .anyRequest().authenticated())

@@ -33,7 +33,6 @@ public class Utils {
     }
 
     public static String getUserId(){
-
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt= (Jwt) authentication.getPrincipal();
         if(authentication != null && jwt instanceof Jwt){
