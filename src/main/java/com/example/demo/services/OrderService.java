@@ -1,10 +1,12 @@
 package com.example.demo.services;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,8 +18,9 @@ import org.springframework.stereotype.Service;
 import com.example.demo.dtos.requests.ConditionRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
 import com.example.demo.dtos.requests.OrderRequest;
+import com.example.demo.entity.DetailOrderEntity;
 import com.example.demo.entity.OrderEntity;
-import com.example.demo.mapper.OrderMapper;
+import com.example.demo.repositorys.DetailOrderRepository;
 import com.example.demo.repositorys.OrderRepository;
 import com.example.demo.utils.Utils;
 
@@ -27,51 +30,73 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import com.example.demo.exceptions.NotFoundException;
+
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class OrderService {
+
     OrderRepository orderRepository;
-    OrderMapper orderMapper;
+    DetailOrderRepository detailOrderRepository;
 
     public OrderEntity create(OrderRequest payload) {
-        // OrderEntity findOrder = orderRepository.findByName(payload.getName());
-        // if (findCategory != null) {
-        //     throw new ForbiddenException("category đã tồn tại");
-        // }
 
-        OrderEntity bEntity = orderMapper.toOrder(payload);
-        bEntity.setCreatedBy(Utils.getUserId());
-        orderRepository.save(bEntity);
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderDate(payload.getOrderDate());
+        orderEntity.setPaymentMethod(payload.getPaymentMethod());
+        orderEntity.setShipperAddress(payload.getShipperAddress());
+        orderEntity.setPrice(payload.getPrice());
+        orderEntity.setStatus(payload.getStatus());
+        orderEntity.setUserId(payload.getUserId());
+        orderEntity.setCreatedBy(payload.getUserId());
+        OrderEntity saveOrder = orderRepository.save(orderEntity);
 
-        return bEntity;
+        Float totalPrice = payload.getQuantity() * payload.getPrice();
+
+        DetailOrderEntity detailOrderEntity = new DetailOrderEntity();
+        detailOrderEntity.setProductId(payload.getProductId());
+        detailOrderEntity.setQuantity(payload.getQuantity());
+        detailOrderEntity.setOrderId(saveOrder.getId());
+        detailOrderEntity.setUtilPrice(saveOrder.getPrice());
+        detailOrderEntity.setTotalPrice(totalPrice);
+        detailOrderEntity.setStatus(saveOrder.getStatus());
+        detailOrderRepository.save(detailOrderEntity);
+
+        return saveOrder;
     }
 
     public OrderEntity update(OrderRequest payload) {
-        OrderEntity findOrder = orderRepository.findById(payload.getId()).orElse(null);
-        if (findOrder == null) {
-            throw new NotFoundException("category notfound");
-        }
-        findOrder.setUpdatedBy(Utils.getUserId());
-        findOrder.setAddress(payload.getAddress());
-        findOrder.setUsername(payload.getUsername());
-        findOrder.setPhone(payload.getPhone());
-        findOrder.setDisplay(payload.getDisplay());
-        findOrder.setStatus(payload.getStatus());
-        findOrder.setMessage(payload.getMessage());
-        orderRepository.save(findOrder);
+        OrderEntity findOrder = orderRepository.findById(payload.getOrderId()).orElse(null);
 
+        if (findOrder == null) {
+            throw new NotFoundException("order notfound");
+        }
+
+        DetailOrderEntity findDetailOrderEntity = detailOrderRepository.findById(findOrder.getUserId()).orElse(null);
+
+        findOrder.setUpdatedBy(UUID.fromString(Utils.getUserId()));
+        findOrder.setStatus(payload.getStatus());
+        findOrder.setUserId(payload.getUserId());
+
+        OrderEntity updateOrder = orderRepository.save(findOrder);
+
+        Float totalPrice = updateOrder.getPrice() * payload.getQuantity();
+
+        findDetailOrderEntity.setQuantity(payload.getQuantity());
+        findDetailOrderEntity.setStatus(payload.getStatus());
+        findDetailOrderEntity.setTotalPrice(totalPrice);
+        detailOrderRepository.save(findDetailOrderEntity);
         return findOrder;
 
     }
 
     public String delete(OrderRequest payload) {
-        OrderEntity findOrder = orderRepository.findById(payload.getId()).orElse(null);
+        OrderEntity findOrder = orderRepository.findById(payload.getOrderId()).orElse(null);
         if (findOrder == null) {
             throw new NotFoundException("order notfound");
         }
-        orderRepository.deleteById(payload.getId());
-        return "delete branch success";
+        orderRepository.deleteById(payload.getOrderId());
+        return "delete order success";
 
     }
 
@@ -103,7 +128,7 @@ public class OrderService {
             return criteriaBuilder.and(predicate.toArray(new Predicate[0]));
         };
 
-        Page<OrderEntity> response = orderRepository.findAll(spec, paging);
+        Page<OrderEntity> response = detailOrderRepository.findAll(spec, paging);
         Map<String, Object> result = new HashMap<>();
         result.put("results", response.getContent().size() > 0 ? response.getContent() : new ArrayList());
         result.put("current", response.getPageable().getPageNumber());

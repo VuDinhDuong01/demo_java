@@ -44,10 +44,10 @@ public class ProductEntity extends BaseEntity {
     Float priceSale;
 
     @Column(name = "branch_id")
-    String branchId;
+    UUID branchId;
 
     @Column(name = "category_id")
-    String CategoryId;
+    UUID CategoryId;
 
     @Column(name = "view_count")
     Integer viewCount;

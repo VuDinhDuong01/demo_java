@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,7 +44,7 @@ public class BranchService {
         }
 
         BranchEntity bEntity = branchMapper.toBranch(payload);
-        bEntity.setCreatedBy(Utils.getUserId());
+        bEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
         branchRepository.save(bEntity);
 
         return bEntity;
@@ -54,7 +55,7 @@ public class BranchService {
         if (findBranch == null) {
             throw new NotFoundException("Branch notfound");
         }
-        findBranch.setCreatedBy(Utils.getUserId());
+        findBranch.setCreatedBy(UUID.fromString(Utils.getUserId()));
         findBranch.setImages(payload.getImages());
         findBranch.setMetaKeywords(payload.getMetaKeywords());
         findBranch.setMetaTitle(payload.getMetaTitle());

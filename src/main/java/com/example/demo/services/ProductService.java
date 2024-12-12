@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,7 +44,7 @@ public class ProductService {
         }
 
         ProductEntity bEntity = ProductMapper.toProduct(payload);
-        bEntity.setCreatedBy(Utils.getUserId());
+        bEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
         productRepository.save(bEntity);
 
         return bEntity;
@@ -54,15 +55,15 @@ public class ProductService {
         if (findProduct == null) {
             throw new NotFoundException("Branch notfound");
         }
-        findProduct.setCreatedBy(Utils.getUserId());
+        findProduct.setCreatedBy(UUID.fromString(Utils.getUserId()));
         findProduct.setImages(payload.getImages());
         findProduct.setMetaKeywords(payload.getMetaKeywords());
         findProduct.setMetaTitle(payload.getMetaTitle());
         findProduct.setSlug(payload.getSlug());
         findProduct.setStatus(payload.getStatus());
-        findProduct.setBranchId(payload.getBranchId());
-        findProduct.setCategoryId(payload.getCategoryId());
-        findProduct.setCreatedBy(payload.getDescription());
+        findProduct.setBranchId(UUID.fromString(payload.getBranchId()));
+        findProduct.setCategoryId(UUID.fromString(payload.getCategoryId()));
+        findProduct.setDescription(payload.getDescription());
         findProduct.setHot(payload.getHot());
         findProduct.setType(payload.getType());
         findProduct.setPopular(payload.getPopular());

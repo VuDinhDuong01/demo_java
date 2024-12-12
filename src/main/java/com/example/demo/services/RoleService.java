@@ -12,6 +12,8 @@ import com.example.demo.repositorys.RoleRepository;
 import com.example.demo.utils.Utils;
 
 import java.util.HashSet;
+import java.util.UUID;
+
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +40,7 @@ public class RoleService {
         var role = roleMapper.toRole(payload);
         var permissions = permissionRepository.findByNameIn(payload.getPermissions());
         role.setPermissions(permissions);
-        role.setCreatedBy(user_id);
+        role.setCreatedBy(UUID.fromString(user_id));
         roleRepository.save(role);
         role.setPermissions(new HashSet<>(permissions));
 

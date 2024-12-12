@@ -37,7 +37,7 @@ public class AuthEntity extends BaseEntity {
     String avatar;
 
     @JsonIgnore
-    Integer verify = 0;
+    Integer verify;
 
     List<String> signature;
 
@@ -49,7 +49,7 @@ public class AuthEntity extends BaseEntity {
 
    
     @Column(name = "is_delete")
-    Boolean isDelete = false;
+    Boolean isDelete;
 
     @ManyToOne
     RoleEntity permissions;

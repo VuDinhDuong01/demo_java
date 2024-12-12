@@ -1,7 +1,5 @@
 package com.example.demo.entity;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -14,28 +12,28 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "category")
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CategoryEntity extends BaseEntity {
+@Table(name = "order-detail")
+public class DetailOrderEntity extends BaseEntity {
+    
     @Id
     @GeneratedValue(generator = "uuid")
     UUID id;
 
-    String name;
+    @Column(name = "order_id")
+    UUID orderId;
 
-    String slug ;
-    List<String> images = new ArrayList<>();
+    @Column(name = "product_id")
+    UUID productId;
 
-    @Column(name = "meta_title")
-    String metaTitle;
+    Integer quantity;
 
-    @Column(name = "meta_keywords")
-    String metaKeywords;
+    @Column(name = "total_price")
+    Float totalPrice;
 
-    Integer status ;
+    @Column(name = "util_price")
+    Float utilPrice;
 
-    Integer type;
-    
-    String parentId ;
+    Integer status;
 }

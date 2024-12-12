@@ -11,13 +11,14 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class OrderRequest {
-    String username;
 
-    String phone;
-
+    String orderDate;
+    Float price;
+    UUID userId;
+    UUID productId;
+    Integer quantity;
     Integer status;
-    String display;
-    String message;
-    String address;
-    UUID id;
+    String shipperAddress;
+    String paymentMethod;
+    UUID orderId;
 }

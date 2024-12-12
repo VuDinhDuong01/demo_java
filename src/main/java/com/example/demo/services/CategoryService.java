@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,7 +44,7 @@ public class CategoryService {
         }
 
         CategoryEntity bEntity = categoryMapper.toCategory(payload);
-        bEntity.setCreatedBy(Utils.getUserId());
+        bEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
         categoryRepository.save(bEntity);
 
         return bEntity;
@@ -55,7 +55,7 @@ public class CategoryService {
         if (findCategory == null) {
             throw new NotFoundException("category notfound");
         }
-        findCategory.setCreatedBy(Utils.getUserId());
+        findCategory.setCreatedBy(UUID.fromString(Utils.getUserId()));
         findCategory.setImages(payload.getImages());
         findCategory.setMetaKeywords(payload.getMetaKeywords());
         findCategory.setMetaTitle(payload.getMetaTitle());

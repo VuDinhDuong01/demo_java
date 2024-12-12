@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,7 +50,7 @@ public class PermissionService {
         PermissionEntity permissionEntity = new PermissionEntity();
         permissionEntity.setName(payload.getName());
         permissionEntity.setDescription(payload.getDescription());
-        permissionEntity.setCreatedBy(user_id);
+        permissionEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
         permissionRepository.save(permissionEntity);
         return "create permission success";
     }
@@ -61,12 +62,10 @@ public class PermissionService {
             throw new NotFoundException("permission not found");
         }
 
-        String user_id = Utils.getUserId();
-
         PermissionEntity permissionEntity = new PermissionEntity();
         permissionEntity.setName(payload.getName());
         permissionEntity.setDescription(payload.getDescription());
-        permissionEntity.setUpdatedBy(user_id);
+        permissionEntity.setUpdatedBy(UUID.fromString(Utils.getUserId()));
         permissionRepository.save(permissionEntity);
         return "update permission success";
     }

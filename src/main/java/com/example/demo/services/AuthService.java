@@ -135,7 +135,7 @@ public class AuthService {
     authEntity.setPassword(hashedPassword);
     authEntity.setUsername(body.getUsername());
     authEntity.setId(id);
-    authEntity.setCreatedBy(id);
+    authEntity.setCreatedBy(UUID.fromString(id));
     authRepository.save(authEntity);
     AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().id(id).build();
     return registerResponse;

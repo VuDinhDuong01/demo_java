@@ -1,13 +1,13 @@
-package com.example.demo.mapper;
+// package com.example.demo.mapper;
 
-import org.mapstruct.Mapper;
+// import org.mapstruct.Mapper;
 
-import com.example.demo.dtos.requests.OrderRequest;
-import com.example.demo.entity.OrderEntity;
+// import com.example.demo.dtos.requests.OrderRequest;
+// import com.example.demo.entity.OrderEntity;
 
-@Mapper(componentModel = "spring")
-public interface OrderMapper {
+// @Mapper(componentModel = "spring")
+// public interface OrderMapper {
 
-    OrderEntity toOrder(OrderRequest order);
+//     OrderEntity toOrder(OrderRequest order);
     
-}
+// }
