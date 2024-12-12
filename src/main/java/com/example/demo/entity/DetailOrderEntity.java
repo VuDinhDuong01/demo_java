@@ -14,7 +14,7 @@ import lombok.experimental.FieldDefaults;
 @Entity
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "order-detail")
+@Table(name = "order_detail")
 public class DetailOrderEntity extends BaseEntity {
     
     @Id

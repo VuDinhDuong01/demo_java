@@ -53,7 +53,7 @@ public class CategoryController {
         return BaseResponse.<String>builder().result(response).build();
     }
 
-    @GetMapping("/filter-category")
+    @PostMapping("/filter-category")
     public BaseResponse<Map<String, Object>> filter(@RequestBody @Valid GetAllRequest body) {
         Map<String, Object> response = categoryService.getAllCategory(body);
         return BaseResponse.<Map<String, Object>>builder().result(response).build();

@@ -11,9 +11,9 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 @Entity
+@Table(name = "order_product")
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "order")
 public class OrderEntity extends BaseEntity {
     @Id
     @GeneratedValue(generator = "uuid")

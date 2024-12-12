@@ -19,6 +19,7 @@ import com.example.demo.dtos.requests.ProductRequest;
 import com.example.demo.entity.ProductEntity;
 import com.example.demo.repositorys.ProductRepository;
 import com.example.demo.utils.Utils;
+import com.nimbusds.jose.Payload;
 
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -51,12 +52,14 @@ public class ProductService {
     }
 
     public ProductEntity update(ProductRequest payload) {
-        ProductEntity findProduct = productRepository.findById(payload.getId()).orElse(null);
+        ProductEntity findProduct = productRepository.findById(UUID.fromString(payload.getId())).orElse(null);
         if (findProduct == null) {
-            throw new NotFoundException("Branch notfound");
+            throw new NotFoundException("product notfound");
         }
+
         findProduct.setCreatedBy(UUID.fromString(Utils.getUserId()));
         findProduct.setImages(payload.getImages());
+        findProduct.setName(payload.getName());
         findProduct.setMetaKeywords(payload.getMetaKeywords());
         findProduct.setMetaTitle(payload.getMetaTitle());
         findProduct.setSlug(payload.getSlug());
@@ -69,6 +72,7 @@ public class ProductService {
         findProduct.setPopular(payload.getPopular());
         findProduct.setPriceIn(payload.getPriceIn());
         findProduct.setPriceOut(payload.getPriceOut());
+        findProduct.setDescription(payload.getDescription());
         findProduct.setPriceSale(payload.getPriceSale());
         productRepository.save(findProduct);
 
@@ -77,12 +81,12 @@ public class ProductService {
     }
 
     public String delete(ProductRequest payload) {
-        ProductEntity findBranch = productRepository.findById(payload.getId()).orElse(null);
+        ProductEntity findBranch = productRepository.findById(UUID.fromString(payload.getId())).orElse(null);
         if (findBranch == null) {
-            throw new NotFoundException("Branch notfound");
+            throw new NotFoundException("product notfound");
         }
-        productRepository.deleteById(payload.getId());
-        return "delete branch success";
+        productRepository.deleteById(UUID.fromString(payload.getId()));
+        return "delete product success";
 
     }
 

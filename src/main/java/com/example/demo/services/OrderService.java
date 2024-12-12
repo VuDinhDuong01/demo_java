@@ -49,9 +49,10 @@ public class OrderService {
         orderEntity.setStatus(payload.getStatus());
         orderEntity.setUserId(payload.getUserId());
         orderEntity.setCreatedBy(payload.getUserId());
+        
         OrderEntity saveOrder = orderRepository.save(orderEntity);
 
-        Float totalPrice = payload.getQuantity() * payload.getPrice();
+        Float totalPrice = payload.getQuantity() * saveOrder.getPrice();
 
         DetailOrderEntity detailOrderEntity = new DetailOrderEntity();
         detailOrderEntity.setProductId(payload.getProductId());
@@ -60,6 +61,7 @@ public class OrderService {
         detailOrderEntity.setUtilPrice(saveOrder.getPrice());
         detailOrderEntity.setTotalPrice(totalPrice);
         detailOrderEntity.setStatus(saveOrder.getStatus());
+        detailOrderEntity.setCreatedBy(payload.getUserId());
         detailOrderRepository.save(detailOrderEntity);
 
         return saveOrder;
@@ -97,7 +99,6 @@ public class OrderService {
         }
         orderRepository.deleteById(payload.getOrderId());
         return "delete order success";
-
     }
 
     public Map<String, Object> getAllOrder(GetAllRequest payload) {

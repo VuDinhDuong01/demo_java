@@ -26,7 +26,7 @@ import lombok.experimental.FieldDefaults;
 @RequestMapping("/api/v1")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class ProductionController {
+public class ProducController {
        ProductService productService;
 
     @PostMapping("/product")
@@ -53,7 +53,7 @@ public class ProductionController {
     }
 
 
-    @GetMapping("/filter-product")
+    @PostMapping("/filter-product")
     public BaseResponse<Map<String, Object>> filter(@RequestBody @Valid GetAllRequest body){
 
         Map<String , Object> response = productService.getAllProduct(body);

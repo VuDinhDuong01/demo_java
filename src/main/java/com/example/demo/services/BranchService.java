@@ -55,7 +55,7 @@ public class BranchService {
         if (findBranch == null) {
             throw new NotFoundException("Branch notfound");
         }
-        findBranch.setCreatedBy(UUID.fromString(Utils.getUserId()));
+        findBranch.setUpdatedBy(UUID.fromString(Utils.getUserId()));
         findBranch.setImages(payload.getImages());
         findBranch.setMetaKeywords(payload.getMetaKeywords());
         findBranch.setMetaTitle(payload.getMetaTitle());

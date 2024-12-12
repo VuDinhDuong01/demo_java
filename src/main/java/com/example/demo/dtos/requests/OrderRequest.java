@@ -17,7 +17,7 @@ public class OrderRequest {
     UUID userId;
     UUID productId;
     Integer quantity;
-    Integer status;
+    Integer status=0;
     String shipperAddress;
     String paymentMethod;
     UUID orderId;

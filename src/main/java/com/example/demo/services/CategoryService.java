@@ -55,7 +55,7 @@ public class CategoryService {
         if (findCategory == null) {
             throw new NotFoundException("category notfound");
         }
-        findCategory.setCreatedBy(UUID.fromString(Utils.getUserId()));
+        findCategory.setUpdatedBy(UUID.fromString(Utils.getUserId()));
         findCategory.setImages(payload.getImages());
         findCategory.setMetaKeywords(payload.getMetaKeywords());
         findCategory.setMetaTitle(payload.getMetaTitle());

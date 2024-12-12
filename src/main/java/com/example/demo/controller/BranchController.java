@@ -54,7 +54,7 @@ public class BranchController {
     }
 
 
-    @GetMapping("/filter-branch")
+    @PostMapping("/filter-branch")
     public BaseResponse<Map<String, Object>> filter(@RequestBody @Valid GetAllRequest body){
 
         Map<String , Object> response = branchService.getAllBranch(body);

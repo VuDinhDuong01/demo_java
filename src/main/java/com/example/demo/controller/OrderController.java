@@ -52,7 +52,7 @@ public class OrderController {
         return BaseResponse.<String>builder().result(response).build();
     }
 
-    @GetMapping("/filter-order")
+    @PostMapping("/filter-order")
     public BaseResponse<Map<String, Object>> filter(@RequestBody @Valid GetAllRequest body) {
         Map<String, Object> response = orderService.getAllOrder(body);
         return BaseResponse.<Map<String, Object>>builder().result(response).build();

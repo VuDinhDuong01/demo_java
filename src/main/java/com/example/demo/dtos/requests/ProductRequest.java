@@ -25,7 +25,7 @@ public class ProductRequest {
 
     String metaKeywords = "";
 
-    UUID id;
+    String id;
     
     
     Float priceIn= (float) 0;
@@ -40,7 +40,7 @@ public class ProductRequest {
     String branchId="";
 
  
-    String CategoryId="";
+    String categoryId="";
 
     Integer viewCount;
 
