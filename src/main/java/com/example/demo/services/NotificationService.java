@@ -15,64 +15,72 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dtos.requests.NotificationRequest;
+
 import com.example.demo.dtos.requests.ConditionRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
-import com.example.demo.dtos.requests.ReviewProductRequest;
-import com.example.demo.entity.ReviewProductEntity;
-import com.example.demo.mapper.ReviewProductMapper;
-import com.example.demo.repositorys.ReviewProductRepository;
+import com.example.demo.entity.NotificationEntity;
+
+import com.example.demo.exceptions.ForbiddenException;
+import com.example.demo.exceptions.NotFoundException;
+import com.example.demo.mapper.NotificationMapper;
+import com.example.demo.repositorys.NotificationRepository;
 import com.example.demo.utils.Utils;
 
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Service
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Data
 @RequiredArgsConstructor
-public class ReviewProductService {
-    ReviewProductRepository reviewProductRepository;
-    ReviewProductMapper reviewMapper;
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class NotificationService {
+    NotificationRepository notificationRepository;
+    NotificationMapper notificationMapper;
 
-    public ReviewProductEntity create(ReviewProductRequest payload) {
-        ReviewProductEntity bEntity = reviewMapper.toReviewProduct(payload);
+    public NotificationEntity create(NotificationRequest payload) {
+        NotificationEntity findNotification = notificationRepository.findById(payload.getUserId()).orElse(null);
+        if (findNotification != null) {
+            throw new ForbiddenException("Notification đã tồn tại");
+        }
+
+        NotificationEntity bEntity = notificationMapper.toNotification(payload);
         bEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
-        reviewProductRepository.save(bEntity);
+        notificationRepository.save(bEntity);
 
         return bEntity;
     }
 
-    public ReviewProductEntity update(ReviewProductRequest payload) {
-        ReviewProductEntity findReview = reviewProductRepository.findById(payload.getIdReview()).orElse(null);
-        if (findReview == null) {
-            throw new com.example.demo.exceptions.NotFoundException("Review notfound");
+    public NotificationEntity update(NotificationRequest payload) {
+        NotificationEntity findNotification = notificationRepository.findById(payload.getId()).orElse(null);
+        if (findNotification == null) {
+            throw new NotFoundException("Notification notfound");
         }
-        findReview.setUpdatedBy(UUID.fromString(Utils.getUserId()));
-
-        findReview.setImages(payload.getImages());
-        findReview.setProductId(payload.getProductId());
-        findReview.setUserId(payload.getUserId());
-        findReview.setReview(payload.getReview());
-        findReview.setRating(payload.getRating());
-        reviewProductRepository.save(findReview);
-
-        return findReview;
+        findNotification.setUpdatedBy(UUID.fromString(Utils.getUserId()));
+        findNotification.setType(payload.getType());
+        findNotification.setUserId(payload.getUserId());
+        findNotification.setStatus(payload.getStatus());
+        findNotification.setMessage(payload.getMessage());
+        notificationRepository.save(findNotification);
+        return findNotification;
 
     }
 
-    public String delete(ReviewProductRequest payload) {
-        ReviewProductEntity findReview = reviewProductRepository.findById(payload.getIdReview()).orElse(null);
-        if (findReview == null) {
-            throw new com.example.demo.exceptions.NotFoundException("Review notfound");
+    public String delete(NotificationRequest payload) {
+        NotificationEntity findNotification = notificationRepository.findById(payload.getId()).orElse(null);
+        if (findNotification == null) {
+            throw new NotFoundException("Notification notfound");
         }
-        reviewProductRepository.deleteById(payload.getIdReview());
-        return "delete Review success";
+        notificationRepository.deleteById(payload.getId());
+        return "delete Notification success";
 
     }
 
-    public Map<String, Object> getAllReview(GetAllRequest payload) {
+    public Map<String, Object> getAllNotification(GetAllRequest payload) {
         String fieldSort = payload.getSortField() != null ? payload.getSortField() : "createdAt";
         String fieldType = payload.getSortType() != null ? payload.getSortType() : "asc";
         Sort sort = sort(fieldSort, fieldType);
@@ -100,7 +108,7 @@ public class ReviewProductService {
             return criteriaBuilder.and(predicate.toArray(new Predicate[0]));
         };
 
-        Page<ReviewProductEntity> response = reviewProductRepository.findAll(spec, paging);
+        Page<NotificationEntity> response = notificationRepository.findAll(spec, paging);
         Map<String, Object> result = new HashMap<>();
         result.put("results", response.getContent().size() > 0 ? response.getContent() : new ArrayList());
         result.put("current", response.getPageable().getPageNumber());

@@ -6,24 +6,23 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "cart")
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CartEntity extends BaseEntity{
+@RequiredArgsConstructor
+public class NotificationEntity extends BaseEntity {
     @Id
-     @GeneratedValue(generator = "uuid")
+    @GeneratedValue(generator = "uuid")
     UUID id;
-    @Column(name="product_id")
-    UUID productId;
-    @Column(name="user_id")
 
+    @Column(name = "user_id")
     UUID userId;
-
-    Integer quantity;
+    String message;
+    Integer status;
+    String type;
 }
