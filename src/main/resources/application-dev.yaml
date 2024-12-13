@@ -28,21 +28,6 @@ spring:
     bucket_name: upload-file
   kafka:
     bootstrap-servers: localhost:29092
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            
-            scope:
-              - user:email
-              - read:user
-            redirect-uri: "{baseUrl}/api/v1/home"
-          google:
-           
-            scope:
-              - email
-              - profile
-            redirect-uri: "{baseUrl}/api/v1/home"
+ 
 server:
   port: 5000
