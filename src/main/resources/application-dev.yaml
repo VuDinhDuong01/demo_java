@@ -33,15 +33,15 @@ spring:
       client:
         registration:
           github:
-            client-id: Ov23li7nDlXkoHeYH2k1
-            client-secret: 41b1323a6e8db9efd31c860b0e06943f1f20bfb6
+            client-id: 
+            client-secret: 
             scope:
               - user:email
               - read:user
             redirect-uri: "{baseUrl}/api/v1/home"
           google:
-            clientId: 192059546744-rudedb1b7jbq28cj8dd5pbic9redjpi5.apps.googleusercontent.com
-            clientSecret: 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
+            clientId: 
+            clientSecret: 
             scope:
               - email
               - profile
