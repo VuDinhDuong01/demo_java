@@ -206,7 +206,6 @@ public class AuthService {
                 }
                 predicates.add(criteriaBuilder.like(field, "%" + value.get(0).trim() + "%"));
             }
-
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
