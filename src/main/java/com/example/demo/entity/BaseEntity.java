@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import java.util.Date;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
@@ -16,10 +17,10 @@ import lombok.experimental.FieldDefaults;
 public class BaseEntity {
 
     @Column(name = "created_by")
-    String createdBy;
+    UUID createdBy;
 
     @Column(name="updated_by")
-    String updatedBy;
+    UUID updatedBy;
 
     @Column(name="created_at")
     Date createdAt;

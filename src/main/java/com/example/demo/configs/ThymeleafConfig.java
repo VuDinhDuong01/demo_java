@@ -26,7 +26,7 @@ public class ThymeleafConfig {
         return templateResolver;
     }
 
-    @Bean
+    @Bean(name = "customTemplateEngine")
     @Description("Thymeleaf template engine with Spring integration")
     public SpringTemplateEngine templateEngine() {
 

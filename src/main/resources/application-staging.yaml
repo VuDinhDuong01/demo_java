@@ -1,0 +1,32 @@
+
+spring:
+  application:
+    name: demo
+  datasource:
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/java_spring?allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    show-sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    sender: duong2lophot@gmail.com
+    password: wqnhtkxxzsndzuyb
+    receiver: duong2lophot@gmail.com
+  jwt:
+    secretKey_access_token: Gd7Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==
+    secretKey_refresh_token: Gd8Jf9vZsPiZhvQ5l3X8mYvR6P8jTv1L2xQ6jYuTzWvR5dMfH2k7gQ==
+  minio:
+    secretKey_minio: YlmOLU56Q8LCnDv6msAkVLzFNzhdGoHm2C5DFpld
+    accessKey_minio: J3xLDIlgcn9Utz22BIv8
+    url: http://localhost:9000
+    bucket_name: upload-file
+  kafka:
+    bootstrap-servers: localhost:29092
+server:
+  port: 6000

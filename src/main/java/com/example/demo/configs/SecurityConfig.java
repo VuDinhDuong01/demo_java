@@ -2,6 +2,8 @@ package com.example.demo.configs;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +51,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(HttpMethod.POST, PUBLIC_ROUTE).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
+                                                // .requestMatchers(HttpMethod.POST, "/api/v1/branch")
+                                                // .permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
                                                 // .requestMatchers("/api/v1/oauth/**").permitAll()
                                                 .anyRequest().authenticated())
@@ -69,9 +73,8 @@ public class SecurityConfig {
         @Bean
         JwtDecoder jwtDecoder() {
                 SecretKeySpec secretKeySpec = new SecretKeySpec(
-                                Decoders.BASE64.decode(secretKey_access_token), 
-                                SignatureAlgorithm.HS256.getJcaName() 
-                );
+                                Decoders.BASE64.decode(secretKey_access_token),
+                                SignatureAlgorithm.HS256.getJcaName());
                 return NimbusJwtDecoder
                                 .withSecretKey(secretKeySpec)
                                 .macAlgorithm(MacAlgorithm.HS256)
@@ -93,5 +96,15 @@ public class SecurityConfig {
         @Bean
         public PasswordEncoder passwordEncoder() {
                 return new BCryptPasswordEncoder(10);
+        }
+
+        @Bean
+        public XSSFWorkbook  workbook() {
+                return new XSSFWorkbook();
+        }
+
+        @Bean
+        public XSSFSheet sheet(XSSFWorkbook workbook) {
+                return workbook.createSheet("User");
         }
 }

@@ -1,18 +1,22 @@
-FROM amazoncorretto:21.0.4 as builder
+FROM openjdk:17-jdk-alpine AS builder
+
+RUN apk add --no-cache maven
 
 WORKDIR /app
 
 COPY pom.xml .
+
 COPY src ./src
 
-#BUILD
-RUN mvn  package -DskipTests
+# build
+RUN mvn package -DskipTests 
 
-FROM amazoncorretto:21.0.4 as runner
+FROM openjdk:17-jdk-slim AS runner
 
-COPY --from=builder /app/target/*.jar app.jar
+WORKDIR /app
 
-EXPOSE 5000
+COPY --from=builder /app/target/*.jar ./app.jar
 
-CMD [ "java" ,"-jar","app.jar" ]
+EXPOSE  8080
 
+CMD ["java","-jar","/app/app.jar"]
