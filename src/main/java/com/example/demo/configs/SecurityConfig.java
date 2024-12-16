@@ -64,7 +64,7 @@ public class SecurityConfig {
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
                                                 .authenticationEntryPoint(new AuthenticationErrorConfig()));
-                http.oauth2Login(oauth2 -> oauth2.loginPage("/home").defaultSuccessUrl("/home", true));
+                http.oauth2Login().defaultSuccessUrl("http://localhost:3000/home", true);
                 return http.build();
         }
 
