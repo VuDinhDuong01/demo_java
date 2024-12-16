@@ -18,10 +18,14 @@ import org.springframework.stereotype.Service;
 import com.example.demo.dtos.requests.ConditionRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
 import com.example.demo.dtos.requests.OrderRequest;
-import com.example.demo.entity.DetailOrderEntity;
+import com.example.demo.dtos.responses.OrderResponse;
+import com.example.demo.entity.AuthEntity;
 import com.example.demo.entity.OrderEntity;
-import com.example.demo.repositorys.DetailOrderRepository;
+import com.example.demo.entity.ProductEntity;
+import com.example.demo.repositorys.AuthRepository;
+
 import com.example.demo.repositorys.OrderRepository;
+import com.example.demo.repositorys.ProductRepository;
 import com.example.demo.utils.Utils;
 
 import jakarta.persistence.criteria.Path;
@@ -37,60 +41,84 @@ import com.example.demo.exceptions.NotFoundException;
 public class OrderService {
 
     OrderRepository orderRepository;
-    DetailOrderRepository detailOrderRepository;
 
-    public OrderEntity create(OrderRequest payload) {
+    AuthRepository authRepository;
+    ProductRepository productRepository;
+    com.example.demo.mapper.OrderMapper orderMapper;
 
-        OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setOrderDate(payload.getOrderDate());
-        orderEntity.setPaymentMethod(payload.getPaymentMethod());
-        orderEntity.setShipperAddress(payload.getShipperAddress());
-        orderEntity.setPrice(payload.getPrice());
-        orderEntity.setStatus(payload.getStatus());
-        orderEntity.setUserId(payload.getUserId());
-        orderEntity.setCreatedBy(payload.getUserId());
+    public OrderResponse create(OrderRequest payload) {
+
+        AuthEntity userOrder = authRepository.findById(payload.getUserId().toString()).orElse(null);
+        ProductEntity productOrder = productRepository.findById(payload.getProductId()).orElse(null);
+
+        OrderEntity orderMap = orderMapper.toOrder(payload);
+        OrderResponse orderResponse = new OrderResponse();
         
-        OrderEntity saveOrder = orderRepository.save(orderEntity);
+        orderResponse.setId(orderMap.getId());
+        orderResponse.setUserId(payload.getUserId());
+        orderResponse.setOrderDate(payload.getOrderDate());
+        orderResponse.setPrice(payload.getPrice());
+        orderResponse.setPaymentMethod(payload.getPaymentMethod());
+        orderResponse.setShipperAddress(payload.getShipperAddress());
+        orderResponse.setStatus(payload.getStatus());
+        orderResponse.setProductId(payload.getProductId());
+        orderResponse.setQuantity(payload.getQuantity());
+        orderResponse.setPriceSale(payload.getPriceSale());
 
-        Float totalPrice = payload.getQuantity() * saveOrder.getPrice();
+        orderResponse.setUserOrder(userOrder);
+        orderResponse.setUserCreated(userOrder);
+        orderResponse.setProductOrder(productOrder);
 
-        DetailOrderEntity detailOrderEntity = new DetailOrderEntity();
-        detailOrderEntity.setProductId(payload.getProductId());
-        detailOrderEntity.setQuantity(payload.getQuantity());
-        detailOrderEntity.setOrderId(saveOrder.getId());
-        detailOrderEntity.setUtilPrice(saveOrder.getPrice());
-        detailOrderEntity.setTotalPrice(totalPrice);
-        detailOrderEntity.setStatus(saveOrder.getStatus());
-        detailOrderEntity.setCreatedBy(payload.getUserId());
-        detailOrderRepository.save(detailOrderEntity);
+        orderRepository.save(orderMap);
 
-        return saveOrder;
+        return orderResponse;
     }
 
-    public OrderEntity update(OrderRequest payload) {
+
+    @SuppressWarnings("unused")
+    public OrderResponse update(OrderRequest payload) {
+
+        ProductEntity productOrder = productRepository.findById(payload.getProductId()).orElse(null);
         OrderEntity findOrder = orderRepository.findById(payload.getOrderId()).orElse(null);
-
+        AuthEntity userOrder = authRepository.findById(findOrder.getCreatedBy().toString()).orElse(null);
+        AuthEntity userUpdateOrder = authRepository.findById(Utils.getUserId()).orElse(null);
         if (findOrder == null) {
-            throw new NotFoundException("order notfound");
+            throw new NotFoundException("order not found");
         }
-
-        DetailOrderEntity findDetailOrderEntity = detailOrderRepository.findById(findOrder.getUserId()).orElse(null);
 
         findOrder.setUpdatedBy(UUID.fromString(Utils.getUserId()));
         findOrder.setStatus(payload.getStatus());
         findOrder.setUserId(payload.getUserId());
+        findOrder.setQuantity(payload.getQuantity());
+        findOrder.setPaymentMethod(payload.getPaymentMethod());
+        findOrder.setOrderDate(payload.getOrderDate());
 
         OrderEntity updateOrder = orderRepository.save(findOrder);
 
-        Float totalPrice = updateOrder.getPrice() * payload.getQuantity();
-
-        findDetailOrderEntity.setQuantity(payload.getQuantity());
-        findDetailOrderEntity.setStatus(payload.getStatus());
-        findDetailOrderEntity.setTotalPrice(totalPrice);
-        detailOrderRepository.save(findDetailOrderEntity);
-        return findOrder;
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setId(updateOrder.getId());
+        orderResponse.setUserId(UUID.fromString(Utils.getUserId()));
+        orderResponse.setOrderDate(updateOrder.getOrderDate());
+        orderResponse.setPrice(updateOrder.getPrice());
+        orderResponse.setPaymentMethod(updateOrder.getPaymentMethod());
+        orderResponse.setShipperAddress(updateOrder.getShipperAddress());
+        orderResponse.setStatus(updateOrder.getStatus());
+        orderResponse.setProductId(updateOrder.getProductId());
+        orderResponse.setQuantity(updateOrder.getQuantity());
+        orderResponse.setPriceSale(updateOrder.getPriceSale());
+        orderResponse.setUserOrder(userOrder);
+        orderResponse.setUserCreated(userOrder);
+        orderResponse.setProductOrder(productOrder);
+        orderResponse.setUserUpdated(userUpdateOrder);
+        orderResponse.setUserUpdated(userOrder);
+        return orderResponse;
 
     }
+    public List<OrderEntity> getOrderByUser(){
+        List<OrderEntity> listOrder = orderRepository.findOrderByUser(UUID.fromString(Utils.getUserId()));
+        return listOrder;
+    }
+
 
     public String delete(OrderRequest payload) {
         OrderEntity findOrder = orderRepository.findById(payload.getOrderId()).orElse(null);
@@ -129,7 +157,7 @@ public class OrderService {
             return criteriaBuilder.and(predicate.toArray(new Predicate[0]));
         };
 
-        Page<OrderEntity> response = detailOrderRepository.findAll(spec, paging);
+        Page<OrderEntity> response = orderRepository.findAll(spec, paging);
         Map<String, Object> result = new HashMap<>();
         result.put("results", response.getContent().size() > 0 ? response.getContent() : new ArrayList());
         result.put("current", response.getPageable().getPageNumber());

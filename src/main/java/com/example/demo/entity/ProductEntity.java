@@ -8,6 +8,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -46,6 +48,7 @@ public class ProductEntity extends BaseEntity {
     @Column(name = "branch_id")
     UUID branchId;
 
+
     @Column(name = "category_id")
     UUID CategoryId;
 
@@ -61,4 +64,16 @@ public class ProductEntity extends BaseEntity {
     Integer popular;
 
     Integer hot;
+
+    @ManyToOne
+    CategoryEntity categoryEntities;
+
+    @ManyToOne
+    BranchEntity branchProduct;
+
+    @OneToOne
+    AuthEntity userCreated;
+
+    @OneToOne
+    AuthEntity userUpdated;
 }

@@ -37,10 +37,10 @@ public class ProductRequest {
     Float priceSale = (float) 0;
 
 
-    String branchId="";
+    UUID branchId;
 
  
-    String categoryId="";
+    UUID categoryId;
 
     Integer viewCount;
 

@@ -20,5 +20,7 @@ public class OrderRequest {
     Integer status=0;
     String shipperAddress;
     String paymentMethod;
+    Float priceSale;
+    
     UUID orderId;
 }
