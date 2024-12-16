@@ -13,6 +13,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -51,7 +54,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(HttpMethod.POST, PUBLIC_ROUTE).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
-                                                .requestMatchers("/login", "/oauth2/**","/api/v1/home").permitAll()
+                                                .requestMatchers("/login", "/oauth2/**", "/api/v1/home","/custom-callback/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
                                                 // .requestMatchers("/api/v1/oauth/**").permitAll()
                                                 .anyRequest().authenticated())
@@ -64,7 +67,15 @@ public class SecurityConfig {
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
                                                 .authenticationEntryPoint(new AuthenticationErrorConfig()));
-                http.oauth2Login().defaultSuccessUrl("http://localhost:3000/home", true);
+                http.oauth2Login()
+                                .successHandler((request, response, authentication) -> {
+                                        // Redirect về frontend URL sau khi login thành công
+                                        response.sendRedirect("http://localhost:3000/user");
+                                })
+                                .failureHandler((request, response, exception) -> {
+                                        // Redirect về trang thông báo lỗi của frontend
+                                        response.sendRedirect("http://localhost:3000/login?error=true");
+                                }).redirectionEndpoint().baseUri("/custom-callback/google");
                 return http.build();
         }
 
@@ -105,4 +116,6 @@ public class SecurityConfig {
         public XSSFSheet sheet(XSSFWorkbook workbook) {
                 return workbook.createSheet("User");
         }
+      
+    
 }

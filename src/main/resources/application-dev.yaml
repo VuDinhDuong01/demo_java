@@ -45,6 +45,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: "{baseUrl}/api/v1/home"
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:5000/custom-callback/google
 server:
   port: 5000
