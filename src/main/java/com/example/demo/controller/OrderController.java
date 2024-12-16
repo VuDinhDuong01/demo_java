@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import com.example.demo.dtos.responses.BaseResponse;
+import com.example.demo.dtos.responses.OrderResponse;
+
 @Controller
 @RestController
 @RequestMapping("/api/v1")
@@ -31,19 +34,15 @@ public class OrderController {
     OrderService orderService;
 
     @PostMapping("/order")
-    public BaseResponse<OrderEntity> create(@RequestBody @Valid OrderRequest body) {
-
-        OrderEntity response = orderService.create(body);
-
-        return BaseResponse.<OrderEntity>builder().result(response).build();
+    public BaseResponse<OrderResponse> create(@RequestBody @Valid OrderRequest body) {
+        OrderResponse response = orderService.create(body);
+        return BaseResponse.<OrderResponse>builder().result(response).build();
     }
 
     @PutMapping("/order")
-    public BaseResponse<OrderEntity> update(@RequestBody @Valid OrderRequest body) {
-
-        OrderEntity response = orderService.update(body);
-
-        return BaseResponse.<OrderEntity>builder().result(response).build();
+    public BaseResponse<OrderResponse> update(@RequestBody @Valid OrderRequest body) {
+        OrderResponse response = orderService.update(body);
+        return BaseResponse.<OrderResponse>builder().result(response).build();
     }
 
     @DeleteMapping("/order")
@@ -56,5 +55,11 @@ public class OrderController {
     public BaseResponse<Map<String, Object>> filter(@RequestBody @Valid GetAllRequest body) {
         Map<String, Object> response = orderService.getAllOrder(body);
         return BaseResponse.<Map<String, Object>>builder().result(response).build();
+    }
+
+    @GetMapping("/order")
+    public BaseResponse<List<OrderEntity>> findOrderByUser() {
+        List<OrderEntity> response = orderService.getOrderByUser();
+        return BaseResponse.<List<OrderEntity>>builder().result(response).build();
     }
 }

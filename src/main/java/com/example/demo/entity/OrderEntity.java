@@ -1,4 +1,5 @@
 package com.example.demo.entity;
+
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -22,11 +23,20 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "user_id")
     UUID userId;
 
+    @Column(name = "product_id")
+    UUID productId;
+
     @Column(name = "order_date")
     String orderDate;
 
     @Column(name = "price")
     Float price;
+
+    @Column(name = "quantity")
+    Integer quantity;
+
+    @Column(name = "price_sale")
+    Float priceSale;
 
     @Column(name = "payment_method")
     String paymentMethod;

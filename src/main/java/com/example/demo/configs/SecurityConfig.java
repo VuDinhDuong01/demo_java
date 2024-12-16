@@ -51,8 +51,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(HttpMethod.POST, PUBLIC_ROUTE).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
-                                                // .requestMatchers(HttpMethod.POST, "/api/v1/branch")
-                                                // .permitAll()
+                                                .requestMatchers("/login", "/oauth2/**","/api/v1/home").permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
                                                 // .requestMatchers("/api/v1/oauth/**").permitAll()
                                                 .anyRequest().authenticated())
@@ -65,8 +64,7 @@ public class SecurityConfig {
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
                                                 .authenticationEntryPoint(new AuthenticationErrorConfig()));
-                // http.oauth2Login(oauth2 ->
-                // oauth2.loginPage("/login").defaultSuccessUrl("/home", true));
+                http.oauth2Login().defaultSuccessUrl("http://localhost:3000/home", true);
                 return http.build();
         }
 
@@ -99,7 +97,7 @@ public class SecurityConfig {
         }
 
         @Bean
-        public XSSFWorkbook  workbook() {
+        public XSSFWorkbook workbook() {
                 return new XSSFWorkbook();
         }
 

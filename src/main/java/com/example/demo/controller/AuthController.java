@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +31,7 @@ import com.example.demo.dtos.responses.BaseResponse;
 import com.example.demo.entity.AuthEntity;
 import com.example.demo.services.AuthService;
 
+import ch.qos.logback.core.model.Model;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -120,10 +122,15 @@ public class AuthController {
         return baseResponse;
     }
 
-    @PostMapping("/oauth/google")
-    public String loginGoogle(@AuthenticationPrincipal OAuth2User user) {
-        System.out.println("user" + user);
-        return "well come";
+    @GetMapping("/home")
+    public String homePage(Model model, @AuthenticationPrincipal OAuth2User principal) {
+        if (principal != null) {
+            // Lấy thông tin người dùng từ Google
+            System.out.println("User attributes: " + principal.getAttributes());
+        } else {
+            System.out.println("User not authenticated");
+        }
+        return "home"; // Chuyển đến trang home
     }
 
     @PostMapping("/import-user")

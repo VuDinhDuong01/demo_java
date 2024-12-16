@@ -19,9 +19,11 @@ import com.example.demo.dtos.requests.CategoryRequest;
 import com.example.demo.dtos.requests.ConditionRequest;
 import com.example.demo.dtos.requests.GetAllRequest;
 import com.example.demo.entity.CategoryEntity;
+import com.example.demo.entity.ProductEntity;
 import com.example.demo.exceptions.ForbiddenException;
 import com.example.demo.mapper.CategoryMapper;
 import com.example.demo.repositorys.CategoryRepository;
+import com.example.demo.repositorys.ProductRepository;
 import com.example.demo.utils.Utils;
 
 import jakarta.persistence.criteria.Path;
@@ -35,6 +37,7 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 public class CategoryService {
     CategoryRepository categoryRepository;
+    // ProductRepository productRepository;
     CategoryMapper categoryMapper;
 
     public CategoryEntity create(CategoryRequest payload) {
@@ -44,6 +47,7 @@ public class CategoryService {
         }
 
         CategoryEntity bEntity = categoryMapper.toCategory(payload);
+        
         bEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
         categoryRepository.save(bEntity);
 

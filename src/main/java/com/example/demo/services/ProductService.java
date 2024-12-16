@@ -16,10 +16,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dtos.requests.ProductRequest;
+import com.example.demo.entity.AuthEntity;
+import com.example.demo.entity.BranchEntity;
+import com.example.demo.entity.CategoryEntity;
 import com.example.demo.entity.ProductEntity;
+import com.example.demo.repositorys.AuthRepository;
+import com.example.demo.repositorys.BranchRepository;
+import com.example.demo.repositorys.CategoryRepository;
 import com.example.demo.repositorys.ProductRepository;
 import com.example.demo.utils.Utils;
-import com.nimbusds.jose.Payload;
 
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -36,6 +41,9 @@ import com.example.demo.dtos.requests.GetAllRequest;
 @RequiredArgsConstructor
 public class ProductService {
     ProductRepository productRepository;
+    CategoryRepository categoryRepository;
+    BranchRepository branchRepository;
+    AuthRepository authRepository;
     com.example.demo.mapper.ProductMapper ProductMapper;
 
     public ProductEntity create(ProductRequest payload) {
@@ -44,8 +52,15 @@ public class ProductService {
             throw new ForbiddenException("Branch đã tồn tại");
         }
 
+        CategoryEntity categoryEntities = categoryRepository.findById(payload.getCategoryId()).orElse(null);
+        BranchEntity branch = branchRepository.findById(payload.getBranchId()).orElse(null);
+        AuthEntity userCreated = authRepository.findById(Utils.getUserId()).orElse(null);
         ProductEntity bEntity = ProductMapper.toProduct(payload);
+        bEntity.setCategoryEntities(categoryEntities);
         bEntity.setCreatedBy(UUID.fromString(Utils.getUserId()));
+        bEntity.setUserCreated(userCreated);
+        bEntity.setBranchProduct(branch);
+
         productRepository.save(bEntity);
 
         return bEntity;
@@ -53,9 +68,14 @@ public class ProductService {
 
     public ProductEntity update(ProductRequest payload) {
         ProductEntity findProduct = productRepository.findById(UUID.fromString(payload.getId())).orElse(null);
+
         if (findProduct == null) {
-            throw new NotFoundException("product notfound");
+            throw new NotFoundException("product not found");
         }
+
+        CategoryEntity categoryEntities = categoryRepository.findById(payload.getCategoryId()).orElse(null);
+        BranchEntity branch = branchRepository.findById(payload.getBranchId()).orElse(null);
+        AuthEntity userUpdated = authRepository.findById(Utils.getUserId()).orElse(null);
 
         findProduct.setCreatedBy(UUID.fromString(Utils.getUserId()));
         findProduct.setImages(payload.getImages());
@@ -64,16 +84,20 @@ public class ProductService {
         findProduct.setMetaTitle(payload.getMetaTitle());
         findProduct.setSlug(payload.getSlug());
         findProduct.setStatus(payload.getStatus());
-        findProduct.setBranchId(UUID.fromString(payload.getBranchId()));
-        findProduct.setCategoryId(UUID.fromString(payload.getCategoryId()));
+        findProduct.setBranchId(payload.getBranchId());
+        findProduct.setCategoryId(payload.getCategoryId());
         findProduct.setDescription(payload.getDescription());
         findProduct.setHot(payload.getHot());
+        findProduct.setBranchProduct(branch);
+        findProduct.setCategoryEntities(categoryEntities);
         findProduct.setType(payload.getType());
         findProduct.setPopular(payload.getPopular());
         findProduct.setPriceIn(payload.getPriceIn());
         findProduct.setPriceOut(payload.getPriceOut());
         findProduct.setDescription(payload.getDescription());
         findProduct.setPriceSale(payload.getPriceSale());
+        findProduct.setUserUpdated(userUpdated);
+
         productRepository.save(findProduct);
 
         return findProduct;
@@ -81,6 +105,7 @@ public class ProductService {
     }
 
     public String delete(ProductRequest payload) {
+
         ProductEntity findBranch = productRepository.findById(UUID.fromString(payload.getId())).orElse(null);
         if (findBranch == null) {
             throw new NotFoundException("product notfound");
