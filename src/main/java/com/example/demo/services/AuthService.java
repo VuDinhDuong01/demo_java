@@ -97,8 +97,8 @@ public class AuthService {
   @Autowired
   XSSFSheet sheet;
 
-  // @Autowired
-  // RedisService redisService;
+  @Autowired
+  RedisService redisService;
 
   public AuthResponse.RegisterResponse register(RegisterRequest body) {
     AuthEntity findEmailExsist = authRepository.findByEmail(body.getEmail());
@@ -126,7 +126,8 @@ public class AuthService {
     String id = UUID.randomUUID().toString();
     String hashedPassword = passwordEncoder.encode(body.getPassword());
     // save opt to redis
-    // redisService.SaveOTP(body.getEmail() + "_register", token);
+    redisService.SaveOTP(body.getEmail() + "_register", token);
+    System.out.println("token:" +  token);
 
     AuthEntity authEntity = new AuthEntity();
     authEntity.setRole(RoleType.USER.name());

@@ -38,14 +38,22 @@ services:
   #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   #   networks:
   #     - connect
-  redis:
-    image: redis:6.2-alpine
+  # redis:
+  #   image: redis:6.2-alpine
+  #   restart: always
+  #   ports:
+  #     - '6379:6379'
+  #   volumes: 
+  #     - cache:/data
+  #   networks:
+  #     - connect
+  redis-insight:
+    image: redis/redisinsight:latest
     restart: always
     ports:
-      - '6379:6379'
-    command: redis-server --save 60 1 --loglevel warning --requirepass <PASSWORD>
-    volumes: 
-      - cache:/data
+      - "5540:5540"
+    volumes:
+      - redis-insight:/data
     networks:
       - connect
   # minio:
@@ -64,5 +72,6 @@ volumes:
   # dataVolumes:
   cache:
     driver: local
+  redis-insight:
 networks:
   connect:

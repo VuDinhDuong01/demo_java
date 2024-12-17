@@ -1,5 +1,7 @@
 package com.example.demo.configs;
 
+import java.util.Map;
+
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -56,7 +59,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
                                                 .requestMatchers("/login", "/oauth2/**", "/api/v1/home","/custom-callback/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
-                                                // .requestMatchers("/api/v1/oauth/**").permitAll()
+                                                .requestMatchers(HttpMethod.POST,"/api/v1/register").permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt
@@ -67,15 +70,16 @@ public class SecurityConfig {
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
                                                 .authenticationEntryPoint(new AuthenticationErrorConfig()));
-                http.oauth2Login()
-                                .successHandler((request, response, authentication) -> {
-                                        // Redirect về frontend URL sau khi login thành công
-                                        response.sendRedirect("http://localhost:3000/user");
-                                })
-                                .failureHandler((request, response, exception) -> {
-                                        // Redirect về trang thông báo lỗi của frontend
-                                        response.sendRedirect("http://localhost:3000/login?error=true");
-                                }).redirectionEndpoint().baseUri("/custom-callback/google");
+                // http.oauth2Login()
+                //                 .successHandler((request, response, authentication) -> {
+                //                         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+                //                         Map<String, Object> email = oauth2User.getAttributes();
+                //                         System.out.println("email:" + email);
+                //                         response.sendRedirect("http://localhost:3000/homepage?from_login=true");
+                //                 })
+                //                 .failureHandler((request, response, exception) -> {
+                //                         response.sendRedirect("http://localhost:3000/login?error=true");
+                //                 }).redirectionEndpoint().baseUri("/custom-callback/google");
                 return http.build();
         }
 

@@ -47,5 +47,9 @@ spring:
               - profile
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:5000/custom-callback/google
+  data:
+    redis:
+      port: 6379
+      host: redis
 server:
   port: 5000
