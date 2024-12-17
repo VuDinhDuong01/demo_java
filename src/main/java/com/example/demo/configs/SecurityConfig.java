@@ -1,5 +1,7 @@
 package com.example.demo.configs;
 
+import java.util.Map;
+
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -13,6 +15,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -51,7 +57,9 @@ public class SecurityConfig {
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers(HttpMethod.POST, PUBLIC_ROUTE).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/*").permitAll()
-                                                .requestMatchers("/login", "/oauth2/**","/api/v1/home").permitAll()
+                                                .requestMatchers("/login", "/oauth2/**", "/api/v1/home",
+                                                                "/custom-callback/**")
+                                                .permitAll()
                                                 .requestMatchers(HttpMethod.GET, PUBLIC_ROUTER_SWAGGER).permitAll()
                                                 // .requestMatchers("/api/v1/oauth/**").permitAll()
                                                 .anyRequest().authenticated())
@@ -64,7 +72,16 @@ public class SecurityConfig {
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter()))
                                                 .authenticationEntryPoint(new AuthenticationErrorConfig()));
-                http.oauth2Login().defaultSuccessUrl("http://localhost:3000/home", true);
+                http.oauth2Login()
+                                .successHandler((request, response, authentication) -> {
+                                        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+                                        Map<String, Object> email = oauth2User.getAttributes();
+                                        System.out.println("email:" + email);
+                                        response.sendRedirect("http://localhost:3000/homepage?from_login=true");
+                                })
+                                .failureHandler((request, response, exception) -> {
+                                        response.sendRedirect("http://localhost:3000/login?error=true");
+                                }).redirectionEndpoint().baseUri("/custom-callback/google");
                 return http.build();
         }
 
@@ -105,4 +122,5 @@ public class SecurityConfig {
         public XSSFSheet sheet(XSSFWorkbook workbook) {
                 return workbook.createSheet("User");
         }
+
 }

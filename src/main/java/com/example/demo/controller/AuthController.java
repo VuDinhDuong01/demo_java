@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,16 +124,37 @@ public class AuthController {
         return baseResponse;
     }
 
-    @GetMapping("/home")
-    public String homePage(Model model, @AuthenticationPrincipal OAuth2User principal) {
-        if (principal != null) {
-            // Lấy thông tin người dùng từ Google
-            System.out.println("User attributes: " + principal.getAttributes());
-        } else {
-            System.out.println("User not authenticated");
-        }
-        return "home"; // Chuyển đến trang home
-    }
+    // @GetMapping("/home")
+    // public String homePage(Model model, @AuthenticationPrincipal OAuth2User
+    // principal) {
+    // if (principal != null) {
+    // // Lấy thông tin người dùng từ Google
+    // System.out.println("User attributes: " + principal.getAttributes());
+    // } else {
+    // System.out.println("User not authenticated");
+    // }
+    // return "home"; // Chuyển đến trang home
+    // }
+    // @GetMapping("/home")
+    // public String homePage(Model model, @AuthenticationPrincipal OAuth2User principal,
+    //         OAuth2AuthenticationToken authentication) {
+    //     if (principal != null) {
+    //         // Lấy thông tin người dùng từ Google
+    //         System.out.println("User attributes: " + principal.getAttributes());
+
+    //         // Lấy access token từ OAuth2AuthenticationToken
+    //         OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(
+    //                 authentication.getAuthorizedClientRegistrationId(), authentication.getName());
+
+    //         if (authorizedClient != null) {
+    //             String accessToken = authorizedClient.getAccessToken().getTokenValue();
+    //             System.out.println("Access Token: " + accessToken);
+    //         }
+    //     } else {
+    //         System.out.println("User not authenticated");
+    //     }
+    //     return "home"; // Chuyển đến trang home
+    // }
 
     @PostMapping("/import-user")
     public BaseResponse<AuthResponse.ImportUserResponse> importUser(@RequestParam("file") MultipartFile file) {
@@ -140,7 +163,7 @@ public class AuthController {
                 .result(response).build();
         return result;
     }
-    
+
     @PostMapping("/export-user-excel")
     public void exportUser(@RequestBody @Valid ExportRequest body, HttpServletResponse response) {
         response.setContentType("application/octet-stream");
