@@ -8,5 +8,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VerifyTokenForgotPasswordRequest {
     String email;
-    String token;
+    String token ;
 }

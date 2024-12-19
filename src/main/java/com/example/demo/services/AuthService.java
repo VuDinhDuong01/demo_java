@@ -123,11 +123,11 @@ public class AuthService {
     // }
     kafkaTemplate.send("confirm-acount-topic", "duong2lophot@gmail.com");
 
-    String id = UUID.randomUUID().toString();
     String hashedPassword = passwordEncoder.encode(body.getPassword());
     // save opt to redis
+
     redisService.SaveOTP(body.getEmail() + "_register", token);
-    System.out.println("token:" +  token);
+   
 
     AuthEntity authEntity = new AuthEntity();
     authEntity.setRole(RoleType.USER.name());
@@ -135,27 +135,26 @@ public class AuthService {
     authEntity.setAuthProvider("");
     authEntity.setPassword(hashedPassword);
     authEntity.setUsername(body.getUsername());
-    authEntity.setId(id);
-    authEntity.setCreatedBy(UUID.fromString(id));
     authRepository.save(authEntity);
-    AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().id(id).build();
+    AuthResponse.RegisterResponse registerResponse = AuthResponse.RegisterResponse.builder().email(body.getEmail()).build();
     return registerResponse;
   }
 
   public String verifyEmail(VerifyTokenForgotPasswordRequest payload) {
 
     // get OTP from redis
-    // String getOtpFormRedis = redisService.getOTP(payload.getEmail() + "_register");
-
-    // if (getOtpFormRedis == null) {
-    //   throw new ForbiddenException("Token của bạn đã hết hạn");
-    // }
-
-    // if (getOtpFormRedis != null && getOtpFormRedis != payload.getToken()) {
-    //   throw new ForbiddenException("Token của bạn không đúng");
-    // }
-
-    // redisService.deleteOTP(payload.getEmail());
+    String getOtpFormRedis = redisService.getOTP(payload.getEmail() + "_register");
+    System.out.println("getOtpFormRedis:" +  getOtpFormRedis);
+    System.out.println("payload.getToken():" +  payload.getToken());
+    if (getOtpFormRedis == null) {
+      throw new ForbiddenException("Token của bạn đã hết hạn");
+    }
+ 
+    if (!getOtpFormRedis.equals(payload.getToken())) {
+      throw new ForbiddenException("Token của bạn không đúng");
+    }
+  
+    redisService.deleteOTP(payload.getEmail());
     AuthEntity authEntity = new AuthEntity();
     authEntity.setVerify(1);
     authRepository.save((authEntity));
@@ -253,7 +252,7 @@ public class AuthService {
 
   public AuthEntity updateUser(UpdateUserRequest payload) {
 
-    AuthEntity findUserUpdate = authRepository.findById(payload.getUserIdUpdate()).orElse(null);
+    AuthEntity findUserUpdate = authRepository.findById(UUID).orElse(null);
     if (findUserUpdate == null) {
       throw new NotFoundException("Không tìm thấy user.");
     }

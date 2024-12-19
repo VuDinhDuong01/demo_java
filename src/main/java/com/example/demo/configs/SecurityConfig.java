@@ -38,7 +38,7 @@ public class SecurityConfig {
         @Value("${spring.jwt.secretKey_access_token}")
         private String secretKey_access_token;
 
-        private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login" };
+        private static final String[] PUBLIC_ROUTE = { "/api/v1/register", "/api/v1/login" ,"/api/v1/verify-email"};
         private static final String[] PUBLIC_ROUTER_SWAGGER = { "/swagger-ui/**", "/v2/api-docs", "/v3/api-docs/**",
                         "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security",
                         "/configuration/webjars/**" };

@@ -6,13 +6,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-
+import java.util.UUID;
 @Entity
 @Data
 @Table(name = "auth")
@@ -21,7 +22,8 @@ import lombok.experimental.FieldDefaults;
 public class AuthEntity extends BaseEntity {
 
     @Id
-    String id;
+    @GeneratedValue(generator = "uuid")
+    UUID id;
 
     @Column(name = "username" , nullable = false)
     String username;
@@ -37,7 +39,7 @@ public class AuthEntity extends BaseEntity {
     String avatar;
 
     @JsonIgnore
-    Integer verify;
+    Integer verify = 0;
 
     List<String> signature;
 

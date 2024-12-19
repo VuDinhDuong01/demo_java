@@ -12,9 +12,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.entity.AuthEntity;
-
+import java.util.UUID;
 @Repository
-public interface AuthRepository extends JpaRepository<AuthEntity, String> {
+public interface AuthRepository extends JpaRepository<AuthEntity, UUID> {
     AuthEntity findByEmail(String email);
 
     Optional<AuthEntity> findByUsername(String username);

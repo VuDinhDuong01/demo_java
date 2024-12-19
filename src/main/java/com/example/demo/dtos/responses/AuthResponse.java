@@ -15,7 +15,7 @@ public class AuthResponse {
     @Builder
     @Data
     public static class RegisterResponse {
-        String id;
+        String email;
     }
 
     @Builder
